@@ -1,0 +1,2336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ChamaConnect - Group Savings & Events</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<style>
+:root {
+  --primary: #2E7D32;
+  --primary-light: #4CAF50;
+  --primary-dark: #1B5E20;
+  --accent: #FF6F00;
+  --accent-light: #FFA726;
+  --red: #C62828;
+  --red-light: #EF5350;
+  --blue: #1565C0;
+  --blue-light: #42A5F5;
+  --purple: #6A1B9A;
+  --purple-light: #AB47BC;
+  --bg: #F5F7FA;
+  --card: #FFFFFF;
+  --text: #1A1A2E;
+  --text-muted: #6B7280;
+  --border: #E5E7EB;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  --shadow-hover: 0 8px 30px rgba(0,0,0,0.15);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --sidebar-width: 260px;
+  --topbar-height: 64px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:#f1f1f1;border-radius:10px;}
+::-webkit-scrollbar-thumb{background:var(--primary-light);border-radius:10px;}
+
+/* ===== LOGIN ===== */
+#loginPage{min-height:100vh;background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 40%,#1565C0 100%);display:flex;align-items:center;justify-content:center;padding:16px;}
+.login-card{background:white;border-radius:24px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo .logo-icon{width:72px;height:72px;background:linear-gradient(135deg,var(--primary),var(--blue));border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:32px;}
+.login-logo h1{font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.login-logo p{color:var(--text-muted);font-size:13px;margin-top:3px;}
+.login-tabs{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:24px;gap:4px;}
+.login-tab{flex:1;padding:10px;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;transition:all .3s;background:transparent;color:var(--text-muted);}
+.login-tab.active{background:white;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+.form-group{margin-bottom:15px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px;}
+.form-input{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:11px;font-size:14px;transition:all .3s;background:var(--bg);color:var(--text);}
+.form-input:focus{outline:none;border-color:var(--primary);background:white;box-shadow:0 0 0 3px rgba(46,125,50,0.1);}
+select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-color:var(--bg);padding-right:36px;}
+textarea.form-input{resize:vertical;min-height:80px;font-family:inherit;}
+.btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba(46,125,50,0.3);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(46,125,50,0.4);}
+.btn-secondary{padding:10px 18px;background:var(--bg);color:var(--text);border:2px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .3s;}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary);}
+.btn-danger{padding:10px 18px;background:linear-gradient(135deg,var(--red),var(--red-light));color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .3s;}
+.btn-success{padding:10px 18px;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .3s;}
+.btn-accent{padding:10px 18px;background:linear-gradient(135deg,var(--accent),var(--accent-light));color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .3s;}
+.btn-blue{padding:10px 18px;background:linear-gradient(135deg,var(--blue),var(--blue-light));color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .3s;}
+.btn-purple{padding:10px 18px;background:linear-gradient(135deg,var(--purple),var(--purple-light));color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .3s;}
+.btn-icon{width:34px;height:34px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;flex-shrink:0;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+
+/* ===== APP LAYOUT ===== */
+#appPage{display:none;min-height:100vh;}
+.sidebar{width:var(--sidebar-width);background:linear-gradient(180deg,#1B5E20 0%,#2E7D32 60%,#1565C0 100%);position:fixed;top:0;left:0;height:100vh;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:199;backdrop-filter:blur(2px);}
+.sidebar-header{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sidebar-logo{display:flex;align-items:center;gap:10px;}
+.sidebar-logo .logo-icon{width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.sidebar-logo span{font-size:17px;font-weight:800;color:white;}
+.sidebar-nav{padding:12px 10px;flex:1;}
+.nav-section-title{font-size:9px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1.5px;padding:10px 8px 5px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:11px;cursor:pointer;transition:all .2s;margin-bottom:3px;color:rgba(255,255,255,0.72);font-size:13px;font-weight:500;border:none;background:transparent;width:100%;text-align:left;}
+.nav-item:hover{background:rgba(255,255,255,0.1);color:white;}
+.nav-item.active{background:rgba(255,255,255,0.2);color:white;font-weight:700;}
+.nav-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;background:var(--accent);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px;}
+.sidebar-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,0.1);}
+.user-profile-mini{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:11px;cursor:pointer;transition:all .2s;}
+.user-profile-mini:hover{background:rgba(255,255,255,0.1);}
+.avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:white;flex-shrink:0;border:2px solid rgba(255,255,255,0.3);overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.user-info-mini .name{color:white;font-size:13px;font-weight:600;}
+.user-info-mini .role{color:rgba(255,255,255,0.55);font-size:10px;}
+
+/* ===== MAIN ===== */
+.main-content{margin-left:var(--sidebar-width);min-height:100vh;display:flex;flex-direction:column;transition:margin-left .3s;}
+.topbar{background:white;padding:0 20px;height:var(--topbar-height);display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);position:sticky;top:0;z-index:100;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.hamburger{background:none;border:none;font-size:20px;cursor:pointer;padding:6px;border-radius:8px;color:var(--text);display:none;}
+.topbar-left h2{font-size:18px;font-weight:800;color:var(--text);}
+.topbar-left p{font-size:11px;color:var(--text-muted);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.topbar-btn{width:38px;height:38px;border-radius:10px;background:var(--bg);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;position:relative;}
+.topbar-btn:hover{background:var(--border);}
+.notif-badge{position:absolute;top:4px;right:4px;width:15px;height:15px;background:var(--red);border-radius:50%;font-size:8px;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.topbar-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--blue));display:flex;align-items:center;justify-content:center;color:white;font-weight:700;cursor:pointer;font-size:15px;border:2px solid var(--primary-light);overflow:hidden;flex-shrink:0;}
+.topbar-avatar img{width:100%;height:100%;object-fit:cover;}
+.page-content{padding:20px;flex:1;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ===== CARDS ===== */
+.card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.card-sm{padding:14px;}
+
+/* ===== DASHBOARD ===== */
+.dashboard-hero{background:linear-gradient(135deg,#1B5E20 0%,#2E7D32 50%,#1565C0 100%);border-radius:20px;padding:24px;color:white;margin-bottom:20px;position:relative;overflow:hidden;}
+.dashboard-hero::before{content:'';position:absolute;top:-30%;right:-10%;width:250px;height:250px;background:rgba(255,255,255,0.05);border-radius:50%;}
+.dashboard-hero::after{content:'';position:absolute;bottom:-40%;right:20%;width:180px;height:180px;background:rgba(255,255,255,0.05);border-radius:50%;}
+.hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.hero-greeting p{font-size:13px;opacity:.8;}
+.hero-greeting h2{font-size:20px;font-weight:800;}
+.hero-avatar{width:46px;height:46px;border-radius:50%;border:3px solid rgba(255,255,255,0.35);overflow:hidden;cursor:pointer;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;}
+.hero-avatar img{width:100%;height:100%;object-fit:cover;}
+.balance-display{margin-bottom:16px;}
+.balance-label{font-size:12px;opacity:.8;margin-bottom:3px;}
+.balance-amount{font-size:32px;font-weight:800;}
+.balance-sub{font-size:11px;opacity:.65;margin-top:3px;}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hero-stat{background:rgba(255,255,255,0.12);border-radius:11px;padding:12px;backdrop-filter:blur(10px);}
+.hero-stat .stat-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:6px;}
+.stat-icon.incoming{background:rgba(76,175,80,0.3);}
+.stat-icon.outgoing{background:rgba(239,83,80,0.3);}
+.hero-stat .stat-label{font-size:10px;opacity:.7;}
+.hero-stat .stat-value{font-size:16px;font-weight:700;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:16px;font-weight:800;color:var(--text);}
+.section-link{font-size:12px;color:var(--primary);font-weight:600;cursor:pointer;border:none;background:none;padding:0;}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.quick-action-btn{background:white;border:1px solid var(--border);border-radius:14px;padding:14px 8px;cursor:pointer;transition:all .3s;text-align:center;box-shadow:var(--shadow);}
+.quick-action-btn:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover);border-color:var(--primary-light);}
+.qa-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 8px;}
+.qa-label{font-size:11px;font-weight:600;color:var(--text);}
+.transaction-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.transaction-item:last-child{border-bottom:none;}
+.tx-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.tx-icon.credit{background:rgba(76,175,80,0.15);}
+.tx-icon.debit{background:rgba(239,83,80,0.15);}
+.tx-info{flex:1;min-width:0;}
+.tx-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tx-date{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.tx-amount{font-size:14px;font-weight:700;white-space:nowrap;}
+.tx-amount.credit{color:var(--primary);}
+.tx-amount.debit{color:var(--red);}
+
+/* ===== SAVINGS ===== */
+.savings-tabs{display:flex;background:var(--bg);border-radius:13px;padding:4px;gap:4px;margin-bottom:20px;overflow-x:auto;}
+.savings-tab{flex:1;min-width:120px;padding:10px;border:none;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;transition:all .3s;background:transparent;color:var(--text-muted);white-space:nowrap;}
+.savings-tab.active{background:white;color:var(--primary);box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+.week-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;max-height:128px;overflow-y:auto;padding:2px;}
+.week-btn{padding:8px 4px;border:2px solid var(--border);border-radius:9px;cursor:pointer;transition:all .2s;background:white;text-align:center;font-size:12px;}
+.week-btn:hover{border-color:var(--primary);}
+.week-btn.active{background:var(--text);color:white;border-color:var(--text);}
+.week-btn.current{border-color:var(--primary);border-width:2px;}
+.week-num{font-size:14px;font-weight:700;display:block;}
+.week-dates{font-size:8px;color:inherit;opacity:.7;display:block;margin-top:1px;}
+.table-container{overflow-x:auto;border-radius:11px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead th{background:#1A1A2E;color:white;padding:12px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+thead th:first-child{border-radius:11px 0 0 0;}
+thead th:last-child{border-radius:0 11px 0 0;}
+tbody tr{transition:background .2s;}
+tbody tr:hover{background:rgba(46,125,50,0.04);}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;}
+tbody tr:last-child td{border-bottom:none;}
+tfoot td{padding:12px 14px;font-weight:700;background:rgba(46,125,50,0.08);color:var(--primary);font-size:14px;border-top:2px solid var(--primary-light);}
+.total-sigma{font-size:16px;}
+.summary-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.summary-card{background:white;border:1px solid var(--border);border-radius:13px;padding:18px;}
+.summary-card .sc-label{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;}
+.summary-card .sc-value{font-size:24px;font-weight:800;color:var(--primary);margin:6px 0 3px;}
+.summary-card .sc-sub{font-size:11px;color:var(--text-muted);}
+.ind-table th,.ind-table td{min-width:60px;padding:10px 11px;text-align:center;}
+.ind-table th:nth-child(2),.ind-table td:nth-child(2){text-align:left;min-width:110px;}
+.member-overview{background:white;border-radius:14px;padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);margin-top:20px;}
+.mo-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.mo-header h3{font-size:15px;font-weight:700;}
+.mo-item{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.mo-rank{width:26px;height:26px;border-radius:50%;background:#FFF8E1;border:1px solid #FFD54F;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#F57F17;flex-shrink:0;}
+.mo-rank.gold{background:linear-gradient(135deg,#FFD700,#FFA500);color:white;border:none;}
+.mo-info{flex:1;min-width:0;}
+.mo-name{font-size:13px;font-weight:600;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mo-bar-bg{height:7px;background:#E5E7EB;border-radius:20px;overflow:hidden;}
+.mo-bar{height:100%;background:linear-gradient(90deg,#4CAF50,#66BB6A);border-radius:20px;transition:width .8s ease;}
+.mo-amount{font-size:13px;font-weight:700;color:var(--text);margin-left:8px;white-space:nowrap;}
+
+/* ===== CHARTS ===== */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;}
+.chart-card{background:white;border-radius:14px;padding:18px;border:1px solid var(--border);box-shadow:var(--shadow);}
+.chart-card h4{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text);}
+.chart-container{position:relative;height:220px;}
+
+/* ===== EVENTS ===== */
+.events-section{margin-bottom:28px;}
+.events-section-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:8px;}
+.event-card{background:white;border-radius:13px;padding:16px;margin-bottom:10px;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;gap:14px;align-items:flex-start;transition:all .3s;}
+.event-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover);}
+.event-date-badge{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;border-radius:9px;padding:8px 12px;text-align:center;min-width:52px;flex-shrink:0;}
+.event-date-badge .day{font-size:20px;font-weight:800;}
+.event-date-badge .month{font-size:10px;font-weight:600;opacity:.9;}
+.event-info{flex:1;min-width:0;}
+.event-title{font-size:15px;font-weight:700;margin-bottom:3px;}
+.event-meta{font-size:11px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.event-description{font-size:12px;color:var(--text-muted);}
+.event-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;margin-top:6px;}
+.badge-attended{background:rgba(76,175,80,0.15);color:var(--primary);}
+.badge-missed{background:rgba(198,40,40,0.15);color:var(--red);}
+.badge-upcoming{background:rgba(21,101,192,0.15);color:var(--blue);}
+.suggestion-card{background:var(--bg);border-radius:11px;padding:12px;margin-bottom:8px;border:1px solid var(--border);}
+.suggestion-text{font-size:13px;margin-bottom:5px;}
+.suggestion-meta{font-size:11px;color:var(--text-muted);}
+
+/* ===== MEMORIES ===== */
+.memories-filter{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px;}
+.filter-chip{padding:7px 15px;border-radius:20px;border:2px solid var(--border);background:white;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;color:var(--text-muted);}
+.filter-chip.active{background:var(--primary);border-color:var(--primary);color:white;}
+.memories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+.memory-item{border-radius:13px;overflow:hidden;box-shadow:var(--shadow);background:white;border:1px solid var(--border);transition:all .3s;cursor:pointer;}
+.memory-item:hover{transform:scale(1.02);box-shadow:var(--shadow-hover);}
+.memory-media{width:100%;height:150px;object-fit:cover;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;}
+.memory-media img,.memory-media video{width:100%;height:100%;object-fit:cover;}
+.memory-info{padding:10px;}
+.memory-caption{font-size:12px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.memory-meta{font-size:10px;color:var(--text-muted);display:flex;justify-content:space-between;}
+.memory-cat-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;margin-bottom:5px;}
+
+/* ===== ADMIN ===== */
+.admin-section{background:white;border-radius:14px;padding:20px;margin-bottom:18px;border:1px solid var(--border);box-shadow:var(--shadow);}
+.admin-section h3{font-size:15px;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pending-card{background:var(--bg);border-radius:11px;padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+.pending-info{flex:1;min-width:150px;}
+.pending-title{font-size:13px;font-weight:600;}
+.pending-meta{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.pending-amount{font-size:17px;font-weight:700;color:var(--primary);}
+
+/* ===== PROFILE ===== */
+.profile-hero{background:linear-gradient(135deg,#1B5E20,#1565C0);border-radius:18px;padding:28px;color:white;text-align:center;margin-bottom:20px;}
+.profile-avatar-wrap{position:relative;display:inline-block;margin-bottom:14px;}
+.profile-avatar{width:80px;height:80px;border-radius:50%;border:3px solid rgba(255,255,255,0.35);overflow:hidden;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;margin:0 auto;}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;}
+.profile-avatar-edit{position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;}
+
+/* ===== POLL ===== */
+.poll-card{background:white;border-radius:13px;padding:18px;border:1px solid var(--border);margin-bottom:14px;box-shadow:var(--shadow);}
+.poll-question{font-size:15px;font-weight:700;margin-bottom:14px;}
+.poll-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;border:2px solid var(--border);margin-bottom:7px;cursor:pointer;transition:all .2s;}
+.poll-option:hover{border-color:var(--primary);background:rgba(46,125,50,0.04);}
+.poll-option.selected{border-color:var(--primary);background:rgba(46,125,50,0.08);}
+.poll-bar-wrap{flex:1;min-width:0;}
+.poll-bar{height:5px;background:var(--border);border-radius:10px;overflow:hidden;margin-top:3px;}
+.poll-bar-fill{height:100%;background:var(--primary);border-radius:10px;transition:width .5s;}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal{background:white;border-radius:18px;padding:24px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp .3s ease;}
+.modal-lg{max-width:680px;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.modal-title{font-size:18px;font-weight:800;}
+.modal-close{width:32px;height:32px;border:none;background:var(--bg);border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.toast-container{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:300px;}
+.toast{background:white;border-radius:11px;padding:12px 16px;box-shadow:0 8px 30px rgba(0,0,0,0.15);display:flex;align-items:center;gap:10px;border-left:4px solid var(--primary);animation:slideUp .3s ease;font-size:13px;font-weight:500;}
+.toast.error{border-color:var(--red);}
+.toast.info{border-color:var(--blue);}
+.toast.warning{border-color:var(--accent);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;}
+.bg-green{background:rgba(76,175,80,0.15);}
+.bg-blue{background:rgba(21,101,192,0.15);}
+.bg-orange{background:rgba(255,111,0,0.15);}
+.bg-red{background:rgba(198,40,40,0.15);}
+.text-primary{color:var(--primary);}
+.text-red{color:var(--red);}
+.text-muted{color:var(--text-muted);font-size:12px;}
+.text-center{text-align:center;}
+.font-bold{font-weight:700;}
+.hidden{display:none!important;}
+.flex{display:flex;}
+.items-center{align-items:center;}
+.justify-between{justify-content:space-between;}
+.gap-2{gap:8px;}
+.gap-3{gap:12px;}
+.mt-3{margin-top:12px;}
+.mt-4{margin-top:16px;}
+.mb-3{margin-bottom:12px;}
+.mb-4{margin-bottom:16px;}
+.admin-indicator{background:linear-gradient(135deg,var(--accent),var(--accent-light));color:white;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;}
+.status-dot.online{background:var(--primary-light);}
+.notif-panel{position:absolute;top:calc(100% + 8px);right:0;width:320px;background:white;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,0.15);border:1px solid var(--border);z-index:300;overflow:hidden;}
+.notif-header{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:14px;display:flex;justify-content:space-between;align-items:center;}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s;}
+.notif-item:hover{background:var(--bg);}
+.notif-item.unread{background:rgba(46,125,50,0.05);}
+.notif-item-title{font-size:12px;font-weight:600;}
+.notif-item-time{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.mgo-recipient-card{background:linear-gradient(135deg,var(--accent),var(--accent-light));border-radius:14px;padding:18px;color:white;margin-bottom:14px;}
+.info-box{background:var(--bg);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--text-muted);border-left:3px solid var(--primary);}
+.warning-box{background:rgba(255,111,0,0.08);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--accent);border-left:3px solid var(--accent);}
+
+/* ===== SUPABASE CONFIG BOX ===== */
+.config-banner{background:linear-gradient(135deg,#1565C0,#42A5F5);color:white;border-radius:14px;padding:16px;margin-bottom:20px;font-size:13px;}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){
+  .charts-grid{grid-template-columns:1fr;}
+  .quick-actions{grid-template-columns:repeat(4,1fr);}
+}
+@media(max-width:768px){
+  :root{--sidebar-width:0px;}
+  .sidebar{width:260px;transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;}
+  .main-content{margin-left:0;}
+  .hamburger{display:block;}
+  .quick-actions{grid-template-columns:repeat(2,1fr);}
+  .hero-stats{grid-template-columns:1fr 1fr;}
+  .summary-cards{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .week-grid{grid-template-columns:repeat(4,1fr);}
+  .memories-grid{grid-template-columns:repeat(2,1fr);}
+  .page-content{padding:14px;}
+  .modal{padding:18px;}
+  .dashboard-hero{padding:18px;}
+  .balance-amount{font-size:26px;}
+  .notif-panel{width:280px;right:-60px;}
+  .profile-grid{grid-template-columns:1fr!important;}
+  .charts-grid{grid-template-columns:1fr;}
+  .pending-card{flex-direction:column;align-items:flex-start;}
+  table{font-size:12px;}
+  thead th,tbody td,tfoot td{padding:9px 10px;}
+}
+@media(max-width:480px){
+  .quick-actions{grid-template-columns:repeat(2,1fr);}
+  .savings-tab{min-width:100px;font-size:11px;}
+  .memories-grid{grid-template-columns:1fr 1fr;}
+  .login-card{padding:24px 20px;}
+  .week-grid{grid-template-columns:repeat(3,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🌿</div>
+      <h1>ChamaConnect</h1>
+      <p>Your Group Savings & Events Hub</p>
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('admin')">🔐 Admin</button>
+      <button class="login-tab" onclick="switchLoginTab('member')">👤 Member</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input type="text" class="form-input" id="loginUsername" placeholder="Enter username" onkeypress="if(event.key==='Enter')handleLogin()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-input" id="loginPassword" placeholder="Enter password" onkeypress="if(event.key==='Enter')handleLogin()">
+    </div>
+    <button class="btn-primary" onclick="handleLogin()">Sign In →</button>
+    <p class="text-center text-muted mt-3" style="font-size:11px;">ChamaConnect v2.0 · Powered by Supabase</p>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="appPage">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🌿</div>
+        <span>ChamaConnect</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-profile-mini" onclick="navigateTo('profile')">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <div class="user-info-mini">
+          <div class="name" id="sidebarName">User</div>
+          <div class="role" id="sidebarRole">Member</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <div>
+          <h2 id="pageTitle">Dashboard</h2>
+          <p id="pageSubtitle">Welcome back!</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-purple btn-sm" onclick="exportPDFReport()" title="Export PDF">🖨️</button>
+        <div style="position:relative;">
+          <button class="topbar-btn" onclick="toggleNotifications()" id="notifBtn">
+            🔔<span class="notif-badge hidden" id="notifBadge">0</span>
+          </button>
+          <div class="notif-panel hidden" id="notifPanel">
+            <div class="notif-header">Notifications
+              <button onclick="clearAllNotifications()" style="font-size:11px;color:var(--primary);background:none;border:none;cursor:pointer;">Clear all</button>
+            </div>
+            <div id="notifList"></div>
+          </div>
+        </div>
+        <button class="topbar-btn" onclick="navigateTo('profile')">⚙️</button>
+        <div class="topbar-avatar" id="topbarAvatar" onclick="navigateTo('profile')">?</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="dashboard-hero">
+          <div class="hero-top">
+            <div class="hero-greeting">
+              <p id="greetingTime">Good morning,</p>
+              <h2 id="greetingName">User</h2>
+            </div>
+            <div class="hero-avatar" onclick="navigateTo('profile')" id="heroAvatar">?</div>
+          </div>
+          <div class="balance-display">
+            <div class="balance-label">Individual Savings Balance</div>
+            <div class="balance-amount" id="heroBalance">KES 0.00</div>
+            <div class="balance-sub" id="heroWeek">Loading week info...</div>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat"><div class="stat-icon incoming">⬇️</div><div class="stat-label">Total Deposited</div><div class="stat-value" id="heroDeposited">KES 0</div></div>
+            <div class="hero-stat"><div class="stat-icon outgoing">⬆️</div><div class="stat-label">Total Withdrawn</div><div class="stat-value" id="heroWithdrawn">KES 0</div></div>
+          </div>
+        </div>
+
+        <div class="section-header"><div class="section-title">Quick Actions</div></div>
+        <div class="quick-actions">
+          <div class="quick-action-btn" onclick="openDepositModal()"><div class="qa-icon" style="background:rgba(46,125,50,0.12);">💰</div><div class="qa-label">Deposit</div></div>
+          <div class="quick-action-btn" onclick="openWithdrawModal()"><div class="qa-icon" style="background:rgba(239,83,80,0.12);">📤</div><div class="qa-label">Withdraw</div></div>
+          <div class="quick-action-btn" onclick="openMGOVoteModal()"><div class="qa-icon" style="background:rgba(21,101,192,0.12);">🗳️</div><div class="qa-label">MGO Vote</div></div>
+          <div class="quick-action-btn" onclick="navigateTo('history')"><div class="qa-icon" style="background:rgba(255,111,0,0.12);">📋</div><div class="qa-label">History</div></div>
+          <div class="quick-action-btn" onclick="exportPDFReport()"><div class="qa-icon" style="background:rgba(103,58,183,0.12);">🖨️</div><div class="qa-label">Export PDF</div></div>
+          <div class="quick-action-btn" onclick="navigateTo('savings')"><div class="qa-icon" style="background:rgba(21,101,192,0.12);">📊</div><div class="qa-label">Savings</div></div>
+          <div class="quick-action-btn" onclick="navigateTo('events')"><div class="qa-icon" style="background:rgba(76,175,80,0.12);">📅</div><div class="qa-label">Activities</div></div>
+          <div class="quick-action-btn" onclick="navigateTo('memories')"><div class="qa-icon" style="background:rgba(255,111,0,0.12);">📸</div><div class="qa-label">Memories</div></div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid mb-4">
+          <div class="chart-card"><h4>📈 Savings Trend</h4><div class="chart-container"><canvas id="savingsTrendChart"></canvas></div></div>
+          <div class="chart-card"><h4>🥧 Savings Distribution</h4><div class="chart-container"><canvas id="savingsDistChart"></canvas></div></div>
+        </div>
+
+        <div class="section-header"><div class="section-title">Recent Transactions</div><button class="section-link" onclick="navigateTo('history')">View All</button></div>
+        <div class="card mb-4"><div id="recentTransactions"><div class="text-center text-muted" style="padding:20px;">No transactions yet</div></div></div>
+
+        <div class="section-header"><div class="section-title">🔄 This Week's MGO</div></div>
+        <div id="dashboardMGO" class="card mb-4"><div class="text-muted text-center" style="padding:10px;">No MGO schedule set</div></div>
+
+        <div class="section-header"><div class="section-title">Upcoming Activities</div><button class="section-link" onclick="navigateTo('events')">View All</button></div>
+        <div id="dashboardEvents"><div class="text-muted text-center" style="padding:20px;">No upcoming events</div></div>
+      </div>
+
+      <!-- SAVINGS -->
+      <div class="page" id="page-savings">
+        <div class="savings-tabs">
+          <button class="savings-tab active" onclick="switchSavingsTab('collective')">🤝 Collective</button>
+          <button class="savings-tab" onclick="switchSavingsTab('individual')">👤 Individual</button>
+          <button class="savings-tab" onclick="switchSavingsTab('withdrawal')">📤 Withdrawals</button>
+          <button class="savings-tab" onclick="switchSavingsTab('charts')">📊 Charts</button>
+        </div>
+
+        <div id="savingsCollective">
+          <div class="card mb-4">
+            <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:8px;">
+              <h3 class="section-title">📅 Weekly Collective Savings</h3>
+              <div class="flex gap-2" style="flex-wrap:wrap;">
+                <button class="btn-blue btn-sm" onclick="exportCollectivePDF()">🖨️ Export</button>
+                <button class="btn-accent hidden" id="adminReleaseBtn" onclick="openReleaseModal()">💸 Release</button>
+              </div>
+            </div>
+            <div class="week-grid" id="collectiveWeekGrid"></div>
+            <div class="divider"></div>
+            <div class="flex items-center justify-between mb-3" style="flex-wrap:wrap;gap:8px;">
+              <h4 id="selectedWeekTitle" style="font-size:18px;font-weight:800;">Week 1</h4>
+              <span id="selectedWeekDates" class="chip bg-green text-primary"></span>
+            </div>
+            <div id="mgoRecipientDisplay"></div>
+            <div class="table-container">
+              <table id="collectiveTable">
+                <thead><tr>
+                  <th style="width:42px;">No.</th><th>Name</th><th>Amount</th><th>Status</th>
+                  <th id="collectiveAdminCol" class="hidden">Actions</th>
+                </tr></thead>
+                <tbody id="collectiveTableBody"></tbody>
+                <tfoot><tr>
+                  <td><span class="total-sigma">Σ</span></td>
+                  <td class="font-bold text-primary">TOTAL</td>
+                  <td class="font-bold text-primary" id="collectiveTotal">0.00</td>
+                  <td></td><td id="collectiveAdminColFoot" class="hidden"></td>
+                </tr></tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="savingsIndividual" class="hidden">
+          <div class="card mb-4">
+            <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:8px;">
+              <h3 class="section-title">👤 Individual Savings Summary</h3>
+              <button class="btn-blue btn-sm" onclick="exportIndividualPDF()">🖨️ Export</button>
+            </div>
+            <div class="summary-cards">
+              <div class="summary-card"><div class="sc-label">Total Individual Savings</div><div class="sc-value" id="totalIndSavings">KES 0</div><div class="sc-sub" id="totalIndSub">Across all members</div></div>
+              <div class="summary-card"><div class="sc-label">Active Members</div><div class="sc-value" id="activeMembersCount">0</div><div class="sc-sub">In individual savings</div></div>
+              <div class="summary-card"><div class="sc-label">Weeks Tracked</div><div class="sc-value" id="weeksTracked">52</div><div class="sc-sub">Week 1 through Week 52</div></div>
+            </div>
+            <div class="table-container">
+              <table class="ind-table">
+                <thead><tr id="indSavingsHeader"><th style="width:42px;">No.</th><th>Name</th><th>Total</th></tr></thead>
+                <tbody id="indSavingsBody"></tbody>
+                <tfoot><tr id="indSavingsFoot"><td colspan="2"><span class="total-sigma">Σ</span> TOTAL</td></tr></tfoot>
+              </table>
+            </div>
+            <div class="member-overview mt-4">
+              <div class="mo-header"><h3>Member Overview</h3><span>⭐</span></div>
+              <div id="memberOverviewList"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="savingsWithdrawal" class="hidden">
+          <div class="card">
+            <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:8px;">
+              <h3 class="section-title">📤 Withdrawal History</h3>
+              <div class="flex gap-2">
+                <button class="btn-blue btn-sm" onclick="exportWithdrawalPDF()">🖨️ Export</button>
+                <button class="btn-success" onclick="openWithdrawModal()">+ Request</button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead><tr>
+                  <th>Date</th><th>Member</th><th>Amount</th><th>Balance After</th><th>Status</th>
+                  <th id="adminWithdrawActionsHead" class="hidden">Actions</th>
+                </tr></thead>
+                <tbody id="withdrawalTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="savingsCharts" class="hidden">
+          <div class="charts-grid">
+            <div class="chart-card"><h4>📊 Collective Savings by Week</h4><div class="chart-container"><canvas id="collectiveByWeekChart"></canvas></div></div>
+            <div class="chart-card"><h4>👤 Individual Savings Comparison</h4><div class="chart-container"><canvas id="individualCompChart"></canvas></div></div>
+            <div class="chart-card"><h4>📈 Weekly Progress</h4><div class="chart-container"><canvas id="weeklyProgressChart"></canvas></div></div>
+            <div class="chart-card"><h4>🥧 Payment Status</h4><div class="chart-container"><canvas id="paymentStatusChart"></canvas></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENTS -->
+      <div class="page" id="page-events">
+        <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:8px;">
+          <h2 style="font-size:20px;font-weight:800;">📅 Planned Activities</h2>
+          <div class="flex gap-2">
+            <button class="btn-blue btn-sm" onclick="exportEventsPDF()">🖨️ Export</button>
+            <button class="btn-success hidden" id="addEventBtn" onclick="openAddEventModal()">+ Add Event</button>
+          </div>
+        </div>
+        <div class="events-section">
+          <div class="events-section-title">🚀 Upcoming Activities</div>
+          <div id="upcomingEventsList"><div class="text-muted text-center" style="padding:20px;">No upcoming events</div></div>
+        </div>
+        <div class="events-section">
+          <div class="events-section-title flex items-center justify-between" style="display:flex;">
+            💡 Member Suggestions
+          </div>
+          <div class="card mb-3">
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:12px;">Share Your Idea</h4>
+            <div class="form-group"><label class="form-label">Your Suggestion</label><textarea class="form-input" id="suggestionText" placeholder="What activity would you like?"></textarea></div>
+            <div class="form-group"><label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;"><input type="checkbox" id="suggestionAnon" style="width:15px;height:15px;"> Post anonymously</label></div>
+            <button class="btn-success" onclick="submitSuggestion()">Submit Suggestion</button>
+          </div>
+          <div id="suggestionsList"></div>
+        </div>
+        <div class="events-section">
+          <div class="events-section-title" style="display:flex;justify-content:space-between;">
+            📊 Activity Polls
+            <button class="btn-accent hidden" id="addPollBtn" onclick="openAddPollModal()" style="font-size:11px;padding:5px 12px;">+ Create Poll</button>
+          </div>
+          <div id="pollsList"></div>
+        </div>
+        <div class="events-section">
+          <div class="events-section-title">✅ Past Activities</div>
+          <div id="pastEventsList"><div class="text-muted text-center" style="padding:20px;">No past events yet</div></div>
+        </div>
+      </div>
+
+      <!-- MEMORIES -->
+      <div class="page" id="page-memories">
+        <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:8px;">
+          <h2 style="font-size:20px;font-weight:800;">📸 Memories</h2>
+          <button class="btn-success" onclick="openUploadMemoryModal()">📤 Upload</button>
+        </div>
+        <div class="memories-filter" id="memoriesFilter">
+          <button class="filter-chip active" onclick="filterMemories('all',this)">🌟 All</button>
+          <button class="filter-chip" onclick="filterMemories('Events',this)">🎉 Events</button>
+          <button class="filter-chip" onclick="filterMemories('Hikes',this)">🥾 Hikes</button>
+          <button class="filter-chip" onclick="filterMemories('Achievements',this)">🏆 Achievements</button>
+        </div>
+        <div class="memories-grid" id="memoriesGrid"><div class="text-muted text-center" style="padding:40px;grid-column:1/-1;">No memories yet. Be the first to share!</div></div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="page" id="page-history">
+        <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:8px;">
+          <h2 style="font-size:20px;font-weight:800;">📋 Savings History</h2>
+          <button class="btn-purple btn-sm" onclick="exportHistoryPDF()">🖨️ Export PDF</button>
+        </div>
+        <div class="card">
+          <div class="flex gap-2 mb-4" style="flex-wrap:wrap;">
+            <button class="filter-chip active" onclick="filterHistory('all',this)">All</button>
+            <button class="filter-chip" onclick="filterHistory('deposit',this)">Deposits</button>
+            <button class="filter-chip" onclick="filterHistory('withdrawal',this)">Withdrawals</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Balance After</th></tr></thead>
+              <tbody id="historyTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="page" id="page-profile">
+        <div class="profile-hero">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar" id="profileAvatarDisplay">?</div>
+            <div class="profile-avatar-edit" onclick="document.getElementById('profilePicInput').click()">✏️</div>
+            <input type="file" id="profilePicInput" accept="image/*" class="hidden" onchange="handleProfilePicChange(event)">
+          </div>
+          <h2 id="profileName" style="font-size:20px;font-weight:800;margin-bottom:3px;">User Name</h2>
+          <p id="profileRole" style="opacity:.8;font-size:13px;">Member</p>
+          <p id="profileUsername" style="opacity:.6;font-size:11px;margin-top:3px;">@username</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="profileGrid" class="profile-grid">
+          <div class="admin-section">
+            <h3>👤 Personal Info</h3>
+            <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="profileNameInput" placeholder="Full Name"></div>
+            <div class="form-group"><label class="form-label">Phone</label><input type="text" class="form-input" id="profilePhone" placeholder="Phone Number"></div>
+            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="profileEmail" placeholder="Email address"></div>
+            <button class="btn-success" onclick="saveProfile()">Save Changes</button>
+          </div>
+          <div class="admin-section">
+            <h3>🔐 Change Password</h3>
+            <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-input" id="currentPassword" placeholder="Current password"></div>
+            <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="newPassword" placeholder="New password"></div>
+            <div class="form-group"><label class="form-label">Confirm</label><input type="password" class="form-input" id="confirmPassword" placeholder="Confirm new password"></div>
+            <button class="btn-success" onclick="changePassword()">Update Password</button>
+          </div>
+        </div>
+        <!-- Savings chart on profile -->
+        <div class="chart-card mt-4">
+          <h4>📈 My Savings Journey</h4>
+          <div class="chart-container"><canvas id="mySavingsChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ADMIN -->
+      <div class="page" id="page-admin">
+        <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:8px;">
+          <h2 style="font-size:20px;font-weight:800;">⚙️ Admin Panel</h2>
+          <div class="flex gap-2"><span class="admin-indicator">Admin</span><button class="btn-purple btn-sm" onclick="exportFullReport()">🖨️ Full Report</button></div>
+        </div>
+
+        <!-- Supabase config -->
+        <div class="config-banner" id="supabaseBanner">
+          ☁️ <strong>Cloud Sync:</strong> Configure Supabase below for real-time sync across devices.
+          <button onclick="openSupabaseConfig()" style="margin-left:10px;background:rgba(255,255,255,0.2);border:none;color:white;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;">Configure →</button>
+        </div>
+
+        <div class="admin-section">
+          <h3>👥 Member Management</h3>
+          <button class="btn-success mb-4" onclick="openAddMemberModal()">+ Add Member</button>
+          <div class="table-container">
+            <table>
+              <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Phone</th><th>Email</th><th>Balance</th><th>Actions</th></tr></thead>
+              <tbody id="membersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <h3>💰 Pending Deposits <span class="nav-badge" id="pendingDepositsCount">0</span></h3>
+          <div id="pendingDepositsList"><div class="text-muted text-center" style="padding:20px;">No pending deposits</div></div>
+        </div>
+
+        <div class="admin-section">
+          <h3>📤 Pending Withdrawals <span class="nav-badge" id="pendingWithdrawalsCount">0</span></h3>
+          <div id="pendingWithdrawalsList"><div class="text-muted text-center" style="padding:20px;">No pending withdrawals</div></div>
+        </div>
+
+        <div class="admin-section">
+          <h3>🔄 MGO Schedule</h3>
+          <button class="btn-accent mb-4" onclick="openMGOScheduleModal()">📅 Set Schedule</button>
+          <div id="mgoScheduleList"></div>
+        </div>
+
+        <div class="admin-section">
+          <h3>📂 Categories & Sections</h3>
+          <div class="form-row">
+            <div>
+              <label class="form-label">Memory Categories</label>
+              <div id="memoryCategoriesList" class="mb-3"></div>
+              <div class="flex gap-2"><input type="text" class="form-input" id="newCategoryInput" placeholder="New category"><button class="btn-success btn-sm" onclick="addMemoryCategory()">Add</button></div>
+            </div>
+            <div>
+              <label class="form-label">Email/SMS Notifications</label>
+              <div class="form-group"><label class="form-label">EmailJS Service ID</label><input type="text" class="form-input" id="emailjsService" placeholder="service_xxx"></div>
+              <div class="form-group"><label class="form-label">EmailJS Template ID</label><input type="text" class="form-input" id="emailjsTemplate" placeholder="template_xxx"></div>
+              <div class="form-group"><label class="form-label">EmailJS Public Key</label><input type="text" class="form-input" id="emailjsKey" placeholder="public_key"></div>
+              <button class="btn-blue btn-sm" onclick="saveEmailConfig()">Save Email Config</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supabase Config -->
+        <div class="admin-section hidden" id="supabaseConfigSection">
+          <h3>☁️ Supabase Configuration</h3>
+          <div class="info-box">Enter your Supabase project URL and anon key to enable cloud sync. Get these from your Supabase project settings.</div>
+          <div class="form-group"><label class="form-label">Supabase URL</label><input type="text" class="form-input" id="supabaseUrl" placeholder="https://xxxxx.supabase.co"></div>
+          <div class="form-group"><label class="form-label">Supabase Anon Key</label><input type="text" class="form-input" id="supabaseKey" placeholder="eyJhbGc..."></div>
+          <button class="btn-success" onclick="initSupabase()">Connect to Supabase</button>
+          <button class="btn-secondary mt-3" onclick="document.getElementById('supabaseConfigSection').classList.add('hidden')">Cancel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Add Member -->
+<div id="addMemberModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">👤 Add New Member</div><button class="modal-close" onclick="closeModal('addMemberModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="newMemberName" placeholder="Full name"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Username</label><input type="text" class="form-input" id="newMemberUsername" placeholder="Username"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="newMemberPassword" placeholder="Password"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Phone</label><input type="text" class="form-input" id="newMemberPhone" placeholder="Phone"></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="newMemberEmail" placeholder="Email (for notifications)"></div>
+    </div>
+    <div class="flex gap-2 justify-between mt-4">
+      <button class="btn-secondary" onclick="closeModal('addMemberModal')">Cancel</button>
+      <button class="btn-success" onclick="addMember()">Add Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deposit -->
+<div id="depositModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">💰 Deposit Funds</div><button class="modal-close" onclick="closeModal('depositModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">Savings Type</label>
+      <select class="form-input" id="depositType">
+        <option value="collective">Collective Savings (Merry Go Round)</option>
+        <option value="individual">Individual Savings</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Amount (KES)</label><input type="number" class="form-input" id="depositAmount" placeholder="Amount" min="1"></div>
+    <div class="form-group"><label class="form-label">Week</label>
+      <select class="form-input" id="depositWeek"></select>
+    </div>
+    <div class="form-group"><label class="form-label">Note (optional)</label><input type="text" class="form-input" id="depositNote" placeholder="Payment note"></div>
+    <div class="info-box">ℹ️ Deposit request sent to admin for confirmation.</div>
+    <div class="flex gap-2 justify-between">
+      <button class="btn-secondary" onclick="closeModal('depositModal')">Cancel</button>
+      <button class="btn-success" onclick="submitDeposit()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Withdrawal -->
+<div id="withdrawModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📤 Request Withdrawal</div><button class="modal-close" onclick="closeModal('withdrawModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">Available Balance</label><div style="font-size:22px;font-weight:800;color:var(--primary);" id="withdrawAvailable">KES 0.00</div></div>
+    <div class="form-group"><label class="form-label">Amount (KES)</label><input type="number" class="form-input" id="withdrawAmount" placeholder="Amount" min="1"></div>
+    <div class="form-group"><label class="form-label">Reason</label><textarea class="form-input" id="withdrawReason" placeholder="Reason for withdrawal"></textarea></div>
+    <div class="warning-box">⚠️ Requires admin approval before processing.</div>
+    <div class="flex gap-2 justify-between">
+      <button class="btn-secondary" onclick="closeModal('withdrawModal')">Cancel</button>
+      <button class="btn-danger" onclick="submitWithdrawal()">Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Event -->
+<div id="addEventModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📅 Add Event</div><button class="modal-close" onclick="closeModal('addEventModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">Event Title</label><input type="text" class="form-input" id="eventTitle" placeholder="Event name"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="eventDate"></div>
+      <div class="form-group"><label class="form-label">Time</label><input type="time" class="form-input" id="eventTime"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-input" id="eventLocation" placeholder="Location"></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="eventDescription" placeholder="Details..."></textarea></div>
+    <div class="form-group"><label class="form-label">Category</label>
+      <select class="form-input" id="eventCategory">
+        <option value="Social">🎉 Social</option>
+        <option value="Hike">🥾 Hike</option>
+        <option value="Picnic">🧺 Picnic</option>
+        <option value="Meeting">📋 Meeting</option>
+        <option value="Other">📌 Other</option>
+      </select>
+    </div>
+    <div class="flex gap-2 justify-between mt-4">
+      <button class="btn-secondary" onclick="closeModal('addEventModal')">Cancel</button>
+      <button class="btn-success" onclick="addEvent()">Add Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Memory -->
+<div id="uploadMemoryModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📤 Upload Memory</div><button class="modal-close" onclick="closeModal('uploadMemoryModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">Select Media</label><input type="file" class="form-input" id="memoryFile" accept="image/*,video/*" onchange="previewMemory(event)"><div id="memoryPreview" style="margin-top:8px;"></div></div>
+    <div class="form-group"><label class="form-label">Category</label><select class="form-input" id="memoryCategory"></select></div>
+    <div class="form-group"><label class="form-label">Caption</label><input type="text" class="form-input" id="memoryCaption" placeholder="Describe this memory..."></div>
+    <div class="form-group"><label class="form-label">Date of Memory</label><input type="date" class="form-input" id="memoryDate"></div>
+    <div class="flex gap-2 justify-between mt-4">
+      <button class="btn-secondary" onclick="closeModal('uploadMemoryModal')">Cancel</button>
+      <button class="btn-success" onclick="uploadMemory()">Save Memory</button>
+    </div>
+  </div>
+</div>
+
+<!-- MGO Vote -->
+<div id="mgoVoteModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🗳️ MGO Order Vote</div><button class="modal-close" onclick="closeModal('mgoVoteModal')">✕</button></div>
+    <p class="text-muted mb-4">Vote for your preferred position in the Merry Go Round.</p>
+    <div id="mgoVotePoll"><div class="text-muted text-center" style="padding:20px;">No MGO poll available.</div></div>
+    <div class="flex gap-2 justify-between mt-4">
+      <button class="btn-secondary" onclick="closeModal('mgoVoteModal')">Close</button>
+      <button class="btn-success" onclick="closeModal('mgoVoteModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Poll - REDESIGNED -->
+<div id="addPollModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📊 Create Poll</div><button class="modal-close" onclick="closeModal('addPollModal')">✕</button></div>
+
+    <!-- Step 1: Poll Type -->
+    <div class="form-group">
+      <label class="form-label">Poll Type</label>
+      <select class="form-input" id="pollType" onchange="handlePollTypeChange()">
+        <option value="activity">🎯 Activity Poll</option>
+        <option value="mgo">🔄 MGO Order Poll</option>
+      </select>
+    </div>
+
+    <!-- Step 2: Question -->
+    <div class="form-group">
+      <label class="form-label">Question</label>
+      <input type="text" class="form-input" id="pollQuestion" placeholder="e.g. Which week do you prefer for the MGO?">
+    </div>
+
+    <!-- Step 3a: Activity Options -->
+    <div id="pollOptionsSection">
+      <label class="form-label">Options</label>
+      <div id="pollOptionsList">
+        <div class="flex gap-2 mb-2" id="pollOptRow0"><input type="text" class="form-input" placeholder="Option 1" id="pollOpt0"><button class="btn-icon" style="background:var(--red-light);color:white;" onclick="removePollOptionRow(0)">✕</button></div>
+        <div class="flex gap-2 mb-2" id="pollOptRow1"><input type="text" class="form-input" placeholder="Option 2" id="pollOpt1"><button class="btn-icon" style="background:var(--red-light);color:white;" onclick="removePollOptionRow(1)">✕</button></div>
+      </div>
+      <button class="btn-secondary btn-sm mt-3" onclick="addPollOptionRow()">+ Add Option</button>
+    </div>
+
+    <!-- Step 3b: MGO - Just Week Number -->
+    <div id="mgoWeekSection" class="hidden">
+      <div class="info-box">🔄 For the MGO poll, members will vote on which week they prefer. Enter the week number range available for voting.</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">From Week</label>
+          <input type="number" class="form-input" id="mgoFromWeek" placeholder="e.g. 1" min="1" max="52">
+        </div>
+        <div class="form-group">
+          <label class="form-label">To Week</label>
+          <input type="number" class="form-input" id="mgoToWeek" placeholder="e.g. 12" min="1" max="52">
+        </div>
+      </div>
+      <p class="text-muted" style="margin-top:4px;">Members pick their preferred week. Once voted, they're auto-assigned to that week in the MGO schedule.</p>
+    </div>
+
+    <!-- Multiple answers toggle -->
+    <div class="form-group mt-4">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;">
+        <input type="checkbox" id="pollMultiple" style="width:15px;height:15px;"> Allow multiple answers
+      </label>
+    </div>
+
+    <div class="flex gap-2 justify-between mt-4">
+      <button class="btn-secondary" onclick="closeModal('addPollModal')">Cancel</button>
+      <button class="btn-success" onclick="createPoll()">Create Poll</button>
+    </div>
+  </div>
+</div>
+
+<!-- Release Funds -->
+<div id="releaseFundsModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">💸 Release Collective Funds</div><button class="modal-close" onclick="closeModal('releaseFundsModal')">✕</button></div>
+    <div style="background:var(--bg);border-radius:11px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:12px;color:var(--text-muted);">Total Collected</div>
+      <div style="font-size:26px;font-weight:800;color:var(--primary);" id="releaseTotalAmount">KES 0</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:3px;" id="releaseWeekInfo">Week -</div>
+    </div>
+    <div class="form-group"><label class="form-label">Recipient</label><select class="form-input" id="releaseRecipient"></select></div>
+    <div class="form-group"><label class="form-label">Release Method</label>
+      <select class="form-input" id="releaseMethod" onchange="toggleReleaseAmount()">
+        <option value="send">Send to Member Directly</option>
+        <option value="transfer">Transfer to Individual Savings</option>
+      </select>
+    </div>
+    <div class="form-group" id="releaseAmountGroup">
+      <label class="form-label">Amount to Transfer</label>
+      <input type="number" class="form-input" id="releaseAmount" placeholder="Amount">
+    </div>
+    <div class="warning-box">⚠️ Weekly balance resets to zero. Table data is preserved.</div>
+    <div class="flex gap-2 justify-between">
+      <button class="btn-secondary" onclick="closeModal('releaseFundsModal')">Cancel</button>
+      <button class="btn-accent" onclick="releaseFunds()">💸 Release Funds</button>
+    </div>
+  </div>
+</div>
+
+<!-- MGO Schedule Modal - REDESIGNED -->
+<div id="mgoScheduleModal" class="modal-overlay hidden">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div class="modal-title">📅 Set MGO Schedule</div><button class="modal-close" onclick="closeModal('mgoScheduleModal')">✕</button></div>
+    <p class="text-muted mb-4">Assign each member to a specific week for the Merry Go Round.</p>
+    <div class="table-container mb-4">
+      <table>
+        <thead><tr><th>Member</th><th>Assigned Week</th><th>Week Dates</th><th>Action</th></tr></thead>
+        <tbody id="mgoScheduleTableBody"></tbody>
+      </table>
+    </div>
+    <div class="divider"></div>
+    <h4 style="font-size:14px;font-weight:700;margin-bottom:12px;">Add New Assignment</h4>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Member</label><select class="form-input" id="mgoMemberSelect"></select></div>
+      <div class="form-group"><label class="form-label">Week Number</label><input type="number" class="form-input" id="mgoWeekInput" placeholder="Week #" min="1" max="52"></div>
+    </div>
+    <div class="flex gap-2 justify-between">
+      <button class="btn-secondary" onclick="closeModal('mgoScheduleModal')">Close</button>
+      <button class="btn-success" onclick="addMGOEntry()">+ Add Assignment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Update Savings -->
+<div id="updateSavingsModal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="updateSavingsTitle">Update Savings</div><button class="modal-close" onclick="closeModal('updateSavingsModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">Member</label><input type="text" class="form-input" id="updateSavingsMember" readonly></div>
+    <div class="form-group"><label class="form-label">Amount (KES)</label><input type="number" class="form-input" id="updateSavingsAmount" placeholder="Amount" min="0"></div>
+    <input type="hidden" id="updateSavingsMemberId">
+    <input type="hidden" id="updateSavingsWeek">
+    <input type="hidden" id="updateSavingsType">
+    <div class="flex gap-2 justify-between mt-4">
+      <button class="btn-secondary" onclick="closeModal('updateSavingsModal')">Cancel</button>
+      <button class="btn-success" onclick="saveUpdatedSavings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="modal-overlay hidden" onclick="closeLightbox()">
+  <div style="max-width:92vw;max-height:92vh;border-radius:14px;overflow:hidden;position:relative;" onclick="event.stopPropagation()">
+    <button onclick="closeLightbox()" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:white;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;z-index:10;">✕</button>
+    <img id="lightboxImg" style="max-width:90vw;max-height:82vh;object-fit:contain;display:block;" src="" alt="">
+    <video id="lightboxVideo" style="max-width:90vw;max-height:82vh;display:none;" controls></video>
+    <div style="background:white;padding:10px 14px;" id="lightboxInfo"></div>
+  </div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const EMAILJS_CONFIG = { serviceId:'', templateId:'', publicKey:'' };
+let supabaseClient = null;
+let supabaseConfigured = false;
+
+// ===== DATA STORE =====
+let DB = {
+  users:[],currentUser:null,members:[],
+  collectiveSavings:{},individualSavings:{},
+  withdrawals:[],deposits:[],events:[],suggestions:[],polls:[],memories:[],
+  mgoSchedule:[],transactions:{},notifications:[],
+  memoryCategories:['Events','Hikes','Achievements'],
+  groupName:'ChamaConnect',currentWeek:1,weeklyAmount:200,
+};
+
+// ===== INIT =====
+function initApp(){
+  const saved=localStorage.getItem('chamaConnect_v2');
+  if(saved) DB={...DB,...JSON.parse(saved)};
+  else {
+    DB.users=[{id:'admin',name:'Admin',username:'admin',password:'admin123',role:'admin',phone:'',email:'',profilePic:null}];
+    saveDB();
+  }
+  DB.currentWeek=getCurrentWeekNumber();
+
+  // Load email config
+  const ec=localStorage.getItem('emailConfig');
+  if(ec){const cfg=JSON.parse(ec);Object.assign(EMAILJS_CONFIG,cfg);if(cfg.publicKey)emailjs.init(cfg.publicKey);}
+}
+
+function saveDB(){localStorage.setItem('chamaConnect_v2',JSON.stringify(DB));}
+
+function getCurrentWeekNumber(){
+  const now=new Date(),start=new Date(now.getFullYear(),0,1);
+  return Math.ceil(((now-start)/(7*864e5)));
+}
+
+function getWeekDates(w){
+  const yr=new Date().getFullYear(),jan1=new Date(yr,0,1);
+  const s=new Date(jan1.getTime()+(w-1)*7*864e5);
+  const day=s.getDay(),sun=new Date(s);sun.setDate(s.getDate()-day);
+  const sat=new Date(sun);sat.setDate(sun.getDate()+6);
+  return{start:sun,end:sat,label:`${fmtShort(sun)} - ${fmtShort(sat)}`};
+}
+
+function fmtShort(d){return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+function fmtCur(a){return'KES '+parseFloat(a||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function genId(){return'_'+Math.random().toString(36).substr(2,9)+Date.now().toString(36);}
+
+// ===== LOGIN =====
+let loginType='admin';
+function switchLoginTab(t){
+  loginType=t;
+  document.querySelectorAll('.login-tab').forEach((el,i)=>{
+    el.classList.toggle('active',(i===0&&t==='admin')||(i===1&&t==='member'));
+  });
+}
+
+function handleLogin(){
+  const u=document.getElementById('loginUsername').value.trim();
+  const p=document.getElementById('loginPassword').value.trim();
+  if(!u||!p){showToast('Enter username and password','error');return;}
+  const user=DB.users.find(x=>x.username===u&&x.password===p);
+  if(!user){showToast('Invalid credentials','error');return;}
+  if(loginType==='admin'&&user.role!=='admin'){showToast('Not an admin account','error');return;}
+  if(loginType==='member'&&user.role==='admin'){showToast('Use Admin Login tab','error');return;}
+  DB.currentUser=user;
+  document.getElementById('loginUsername').value='';
+  document.getElementById('loginPassword').value='';
+  showApp();
+}
+
+function showApp(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('appPage').style.display='block';
+  buildSidebar();
+  navigateTo('dashboard');
+}
+
+function logout(){
+  DB.currentUser=null;
+  document.getElementById('loginPage').style.display='flex';
+  document.getElementById('appPage').style.display='none';
+}
+
+// ===== SIDEBAR =====
+function buildSidebar(){
+  const user=DB.currentUser,isAdmin=user.role==='admin';
+  updateAvatars();
+  document.getElementById('sidebarName').textContent=user.name||user.username;
+  document.getElementById('sidebarRole').textContent=isAdmin?'⚡ Admin':'👤 Member';
+  const items=[
+    {id:'dashboard',icon:'🏠',label:'Dashboard'},
+    {id:'savings',icon:'💰',label:'Savings'},
+    {id:'events',icon:'📅',label:'Activities'},
+    {id:'memories',icon:'📸',label:'Memories'},
+    {id:'history',icon:'📋',label:'History'},
+    {id:'profile',icon:'👤',label:'My Profile'},
+  ];
+  if(isAdmin)items.push({id:'admin',icon:'⚙️',label:'Admin Panel',badge:true});
+  items.push({id:'logout',icon:'🚪',label:'Logout'});
+  document.getElementById('sidebarNav').innerHTML=
+    '<div class="nav-section-title">Navigation</div>'+
+    items.map(item=>`
+      <button class="nav-item" id="nav-${item.id}" onclick="${item.id==='logout'?'logout()':`navigateTo('${item.id}')`}">
+        <span class="nav-icon">${item.icon}</span>${item.label}
+        ${item.badge?`<span class="nav-badge" id="adminBadge">!</span>`:''}
+      </button>`).join('');
+  document.getElementById('addEventBtn')?.classList.toggle('hidden',!isAdmin);
+  document.getElementById('addPollBtn')?.classList.toggle('hidden',!isAdmin);
+  document.getElementById('adminReleaseBtn')?.classList.toggle('hidden',!isAdmin);
+  document.getElementById('collectiveAdminCol')?.classList.toggle('hidden',!isAdmin);
+  document.getElementById('collectiveAdminColFoot')?.classList.toggle('hidden',!isAdmin);
+  document.getElementById('adminWithdrawActionsHead')?.classList.toggle('hidden',!isAdmin);
+}
+
+function updateAvatars(){
+  const user=DB.currentUser;if(!user)return;
+  const init=(user.name||user.username||'?').charAt(0).toUpperCase();
+  const pic=user.profilePic;
+  const set=(el)=>{if(!el)return;el.innerHTML=pic?`<img src="${pic}" alt="av">`:`${init}`;};
+  set(document.getElementById('topbarAvatar'));
+  set(document.getElementById('heroAvatar'));
+  set(document.getElementById('profileAvatarDisplay'));
+  const sa=document.getElementById('sidebarAvatar');
+  if(sa){sa.innerHTML=pic?`<img src="${pic}" alt="av" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:`${init}`;}
+}
+
+function navigateTo(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(`page-${id}`)?.classList.add('active');
+  document.getElementById(`nav-${id}`)?.classList.add('active');
+  const titles={
+    dashboard:['Dashboard','Welcome back!'],savings:['Savings','Track your finances'],
+    events:['Planned Activities','Events & schedules'],memories:['Memories','Shared moments'],
+    history:['Savings History','Transaction records'],profile:['My Profile','Account settings'],admin:['Admin Panel','Manage everything'],
+  };
+  const t=titles[id]||['',''];
+  document.getElementById('pageTitle').textContent=t[0];
+  document.getElementById('pageSubtitle').textContent=t[1];
+  if(id==='dashboard')renderDashboard();
+  if(id==='savings')renderSavingsPage();
+  if(id==='events')renderEventsPage();
+  if(id==='memories')renderMemories('all');
+  if(id==='history')renderHistory('all');
+  if(id==='profile')renderProfilePage();
+  if(id==='admin')renderAdminPanel();
+  if(window.innerWidth<=768)toggleSidebar(false);
+}
+
+function toggleSidebar(force){
+  const sb=document.getElementById('sidebar'),ov=document.getElementById('sidebarOverlay');
+  const open=force!==undefined?force:!sb.classList.contains('open');
+  sb.classList.toggle('open',open);
+  ov.classList.toggle('open',open);
+}
+
+// ===== DASHBOARD =====
+function renderDashboard(){
+  const user=DB.currentUser;if(!user)return;
+  updateAvatars();
+  const h=new Date().getHours();
+  document.getElementById('greetingTime').textContent=h<12?'Good morning,':h<17?'Good afternoon,':'Good evening,';
+  document.getElementById('greetingName').textContent=user.name||user.username;
+  const bal=getMemberIndBal(user.id);
+  document.getElementById('heroBalance').textContent=fmtCur(bal);
+  const wk=getWeekDates(DB.currentWeek);
+  document.getElementById('heroWeek').textContent=`Week ${DB.currentWeek} · ${wk.label}`;
+  const txns=DB.transactions[user.id]||[];
+  const dep=txns.filter(t=>t.type==='deposit').reduce((s,t)=>s+t.amount,0);
+  const wd=txns.filter(t=>t.type==='withdrawal').reduce((s,t)=>s+t.amount,0);
+  document.getElementById('heroDeposited').textContent=fmtCur(dep);
+  document.getElementById('heroWithdrawn').textContent=fmtCur(wd);
+  renderRecentTxns();
+  renderDashboardMGO();
+  renderDashboardEvents();
+  renderDashboardCharts();
+  updateNotifBadge();
+}
+
+function renderRecentTxns(){
+  const user=DB.currentUser;
+  const txns=[...(DB.transactions[user.id]||[])].reverse().slice(0,5);
+  const el=document.getElementById('recentTransactions');
+  if(!txns.length){el.innerHTML='<div class="text-center text-muted" style="padding:20px;">No transactions yet</div>';return;}
+  el.innerHTML=txns.map(t=>`
+    <div class="transaction-item">
+      <div class="tx-icon ${t.type==='deposit'?'credit':'debit'}">${t.type==='deposit'?'⬇️':'⬆️'}</div>
+      <div class="tx-info"><div class="tx-title">${t.description}</div><div class="tx-date">${fmtDate(t.date)}</div></div>
+      <div class="tx-amount ${t.type==='deposit'?'credit':'debit'}">${t.type==='deposit'?'+':'-'}${fmtCur(t.amount)}</div>
+    </div>`).join('');
+}
+
+function renderDashboardMGO(){
+  const cw=DB.currentWeek,sch=DB.mgoSchedule.find(s=>s.weekNum===cw);
+  const el=document.getElementById('dashboardMGO');
+  if(!sch){el.innerHTML='<div class="text-muted text-center" style="padding:10px;">No MGO schedule for this week</div>';return;}
+  const mem=DB.members.find(m=>m.id===sch.memberId);
+  const total=getColTotal(cw),wd=getWeekDates(cw);
+  el.innerHTML=`
+    <div class="mgo-recipient-card">
+      <div style="font-size:11px;opacity:.9;margin-bottom:7px;">Week ${cw} MGO Recipient</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;">${(mem?.name||'?').charAt(0)}</div>
+        <div><div style="font-size:20px;font-weight:800;">${mem?.name||'Unknown'}</div><div style="font-size:11px;opacity:.8;">${wd.label}</div></div>
+        <div style="margin-left:auto;text-align:right;"><div style="font-size:11px;opacity:.8;">Collected</div><div style="font-size:18px;font-weight:800;">${fmtCur(total)}</div></div>
+      </div>
+      ${sch.released?`<div style="margin-top:8px;background:rgba(255,255,255,0.15);padding:6px 10px;border-radius:7px;font-size:11px;">✅ Funds Released</div>`:''}
+    </div>`;
+}
+
+function renderDashboardEvents(){
+  const now=new Date();
+  const ev=DB.events.filter(e=>new Date(e.date)>=now&&!e.passed).slice(0,2);
+  const el=document.getElementById('dashboardEvents');
+  el.innerHTML=ev.length?ev.map(e=>renderEventCard(e,true)).join(''):'<div class="text-muted text-center" style="padding:20px;">No upcoming events</div>';
+}
+
+// ===== CHARTS =====
+let chartInstances={};
+
+function destroyChart(id){if(chartInstances[id]){chartInstances[id].destroy();delete chartInstances[id];}}
+
+function renderDashboardCharts(){
+  const user=DB.currentUser;
+  const txns=DB.transactions[user.id]||[];
+
+  // Savings Trend (last 8 weeks)
+  destroyChart('savingsTrendChart');
+  const weeks=[];const balances=[];
+  let running=0;
+  for(let w=1;w<=Math.min(DB.currentWeek,8);w++){
+    const weekTxns=txns.filter(t=>t.weekNum===w||true);
+    weeks.push(`Wk${w}`);
+    const indSav=DB.individualSavings[user.id]||{};
+    running+=(indSav[w]||0);
+    balances.push(running);
+  }
+  const ctx1=document.getElementById('savingsTrendChart');
+  if(ctx1){
+    chartInstances['savingsTrendChart']=new Chart(ctx1,{
+      type:'line',
+      data:{labels:weeks,datasets:[{label:'Individual Savings',data:balances,borderColor:'#4CAF50',backgroundColor:'rgba(76,175,80,0.1)',fill:true,tension:.4,borderWidth:2,pointBackgroundColor:'#4CAF50'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'KES '+v.toLocaleString()}}}}
+    });
+  }
+
+  // Distribution
+  destroyChart('savingsDistChart');
+  const myInd=getMemberIndBal(user.id);
+  const myCol=Object.values(DB.collectiveSavings[DB.currentWeek]||{}).reduce((s,v)=>s+(parseFloat(v)||0),0)/Math.max(DB.members.length,1);
+  const ctx2=document.getElementById('savingsDistChart');
+  if(ctx2){
+    chartInstances['savingsDistChart']=new Chart(ctx2,{
+      type:'doughnut',
+      data:{labels:['Individual','Collective Share'],datasets:[{data:[myInd,myCol],backgroundColor:['#4CAF50','#1565C0'],borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}
+    });
+  }
+}
+
+function renderSavingsCharts(){
+  // Collective by week
+  destroyChart('collectiveByWeekChart');
+  const wkLabels=[],wkTotals=[];
+  for(let w=1;w<=Math.min(DB.currentWeek,12);w++){
+    wkLabels.push(`W${w}`);wkTotals.push(getColTotal(w));
+  }
+  const c1=document.getElementById('collectiveByWeekChart');
+  if(c1){chartInstances['collectiveByWeekChart']=new Chart(c1,{
+    type:'bar',
+    data:{labels:wkLabels,datasets:[{label:'Total Collected',data:wkTotals,backgroundColor:'#2E7D32',borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+  });}
+
+  // Individual comparison
+  destroyChart('individualCompChart');
+  const memNames=DB.members.map(m=>m.name.split(' ')[0]);
+  const memBals=DB.members.map(m=>getMemberIndBal(m.id));
+  const c2=document.getElementById('individualCompChart');
+  if(c2){chartInstances['individualCompChart']=new Chart(c2,{
+    type:'bar',
+    data:{labels:memNames,datasets:[{label:'Balance',data:memBals,backgroundColor:memBals.map((_,i)=>`hsl(${120+i*30},60%,45%)`),borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+  });}
+
+  // Weekly progress
+  destroyChart('weeklyProgressChart');
+  const wkP=[],wkPaid=[];
+  for(let w=1;w<=Math.min(DB.currentWeek,8);w++){
+    const wd=DB.collectiveSavings[w]||{};
+    const paid=Object.values(wd).filter(v=>parseFloat(v)>0).length;
+    wkP.push(`W${w}`);wkPaid.push(paid);
+  }
+  const c3=document.getElementById('weeklyProgressChart');
+  if(c3){chartInstances['weeklyProgressChart']=new Chart(c3,{
+    type:'line',
+    data:{labels:wkP,datasets:[{label:'Members Paid',data:wkPaid,borderColor:'#1565C0',backgroundColor:'rgba(21,101,192,0.1)',fill:true,tension:.4,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  });}
+
+  // Payment status
+  destroyChart('paymentStatusChart');
+  const wkCur=DB.collectiveSavings[DB.currentWeek]||{};
+  let paidCount=0,pendCount=0;
+  DB.members.forEach(m=>{parseFloat(wkCur[m.id]||0)>0?paidCount++:pendCount++;});
+  const c4=document.getElementById('paymentStatusChart');
+  if(c4){chartInstances['paymentStatusChart']=new Chart(c4,{
+    type:'doughnut',
+    data:{labels:['Paid','Pending'],datasets:[{data:[paidCount,pendCount],backgroundColor:['#4CAF50','#FF6F00'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}
+  });}
+}
+
+function renderMySavingsChart(){
+  destroyChart('mySavingsChart');
+  const user=DB.currentUser;
+  const indSav=DB.individualSavings[user.id]||{};
+  const labels=[],data=[];
+  let running=0;
+  for(let w=1;w<=DB.currentWeek;w++){
+    if(indSav[w]){running+=indSav[w];labels.push(`W${w}`);data.push(running);}
+  }
+  const ctx=document.getElementById('mySavingsChart');
+  if(ctx){chartInstances['mySavingsChart']=new Chart(ctx,{
+    type:'line',
+    data:{labels:labels.length?labels:['Start'],datasets:[{label:'My Balance',data:data.length?data:[0],borderColor:'#4CAF50',backgroundColor:'rgba(76,175,80,0.1)',fill:true,tension:.4,borderWidth:2,pointBackgroundColor:'#4CAF50'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'KES '+v.toLocaleString()}}}}
+  });}
+}
+
+// ===== SAVINGS =====
+let currentSavingsTab='collective';
+let selectedWeek=1;
+
+function switchSavingsTab(tab){
+  currentSavingsTab=tab;
+  ['collective','individual','withdrawal','charts'].forEach((t,i)=>{
+    document.getElementById(`savings${t.charAt(0).toUpperCase()+t.slice(1)}`)?.classList.toggle('hidden',t!==tab);
+    document.querySelectorAll('.savings-tab')[i]?.classList.toggle('active',t===tab);
+  });
+  if(tab==='charts'){renderSavingsCharts();}
+  else renderSavingsPage();
+}
+
+function renderSavingsPage(){
+  selectedWeek=selectedWeek||DB.currentWeek;
+  if(currentSavingsTab==='collective')renderCollective();
+  if(currentSavingsTab==='individual')renderIndividual();
+  if(currentSavingsTab==='withdrawal')renderWithdrawalHistory();
+}
+
+function renderCollective(){
+  renderWeekGrid();renderCollectiveTable();
+}
+
+function renderWeekGrid(){
+  const grid=document.getElementById('collectiveWeekGrid');
+  let html='';
+  for(let w=1;w<=52;w++){
+    const d=getWeekDates(w),isCur=w===DB.currentWeek,isSel=w===selectedWeek;
+    html+=`<div class="week-btn ${isSel?'active':''} ${isCur&&!isSel?'current':''}" onclick="selectWeek(${w})">
+      <span class="week-num">${w}</span><span class="week-dates">${fmtShort(d.start)}</span></div>`;
+  }
+  grid.innerHTML=html;
+  setTimeout(()=>grid.querySelector('.week-btn.active')?.scrollIntoView({block:'nearest'}),100);
+}
+
+function selectWeek(w){selectedWeek=w;renderWeekGrid();renderCollectiveTable();}
+
+function renderCollectiveTable(){
+  const isAdmin=DB.currentUser?.role==='admin';
+  const wd=getWeekDates(selectedWeek),wData=DB.collectiveSavings[selectedWeek]||{};
+  document.getElementById('selectedWeekTitle').textContent=`Week ${selectedWeek}`;
+  document.getElementById('selectedWeekDates').textContent=wd.label;
+  const sch=DB.mgoSchedule.find(s=>s.weekNum===selectedWeek);
+  const mgoEl=document.getElementById('mgoRecipientDisplay');
+  if(sch){
+    const mem=DB.members.find(m=>m.id===sch.memberId);
+    mgoEl.innerHTML=`<div style="background:rgba(255,111,0,0.08);border-radius:9px;padding:10px;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:18px;">🔄</span>
+      <div><div style="font-size:11px;color:var(--text-muted);">MGO Recipient</div><div style="font-size:15px;font-weight:700;color:var(--accent);">${mem?.name||'Not assigned'}</div></div>
+      ${sch.released?'<span class="chip bg-green text-primary" style="margin-left:auto;">Released ✅</span>':''}
+    </div>`;
+  } else mgoEl.innerHTML='';
+  let total=0,html='';
+  DB.members.forEach((m,i)=>{
+    const amt=parseFloat(wData[m.id]||0);total+=amt;
+    html+=`<tr>
+      <td>${i+1}</td><td><strong>${m.name}</strong></td><td>${fmtCur(amt)}</td>
+      <td>${amt>0?'<span class="chip bg-green text-primary">✓ Paid</span>':'<span class="chip bg-orange" style="color:var(--accent);">Pending</span>'}</td>
+      ${isAdmin?`<td><button class="btn-icon" style="background:var(--primary);color:white;" onclick="openUpdateSavings('${m.id}','${m.name}',${selectedWeek},'collective',${amt})">✏️</button></td>`:'<td class="hidden"></td>'}
+    </tr>`;
+  });
+  document.getElementById('collectiveTableBody').innerHTML=html||'<tr><td colspan="5" class="text-center text-muted">No members yet</td></tr>';
+  document.getElementById('collectiveTotal').textContent=total.toFixed(2);
+}
+
+function renderIndividual(){
+  const members=DB.members,totalWeeks=52;
+  let totalAll=0;members.forEach(m=>{totalAll+=getMemberIndBal(m.id);});
+  document.getElementById('totalIndSavings').textContent=fmtCur(totalAll);
+  document.getElementById('totalIndSub').textContent=`Across ${members.length} members`;
+  document.getElementById('activeMembersCount').textContent=members.length;
+  document.getElementById('weeksTracked').textContent=totalWeeks;
+  // Header
+  let hd='<th style="width:42px;">No.</th><th>Name</th>';
+  for(let w=1;w<=totalWeeks;w++)hd+=`<th style="font-size:10px;">${w}</th>`;
+  hd+='<th>Total</th>';
+  document.getElementById('indSavingsHeader').innerHTML=hd;
+  // Body
+  const weekTotals={};
+  let body=members.map((m,i)=>{
+    const sav=DB.individualSavings[m.id]||{};
+    let mTotal=0,cells='';
+    for(let w=1;w<=totalWeeks;w++){
+      const a=parseFloat(sav[w]||0);mTotal+=a;
+      weekTotals[w]=(weekTotals[w]||0)+a;
+      cells+=`<td style="font-size:11px;">${a>0?a.toFixed(0):'—'}</td>`;
+    }
+    return`<tr><td>${i+1}</td><td><strong>${m.name}</strong></td>${cells}<td style="font-weight:700;color:var(--primary);font-size:12px;">${fmtCur(mTotal)}</td></tr>`;
+  }).join('');
+  document.getElementById('indSavingsBody').innerHTML=body||'<tr><td colspan="55" class="text-center text-muted">No members</td></tr>';
+  let foot='<td colspan="2"><span class="total-sigma">Σ</span> TOTAL</td>';
+  for(let w=1;w<=totalWeeks;w++)foot+=`<td style="font-size:11px;">${weekTotals[w]>0?weekTotals[w].toFixed(0):'—'}</td>`;
+  foot+='<td></td>';
+  document.getElementById('indSavingsFoot').innerHTML=foot;
+  renderMemberOverview();
+}
+
+function renderMemberOverview(){
+  const sorted=[...DB.members].map(m=>({name:m.name,bal:getMemberIndBal(m.id)})).sort((a,b)=>b.bal-a.bal);
+  const max=sorted[0]?.bal||1;
+  document.getElementById('memberOverviewList').innerHTML=sorted.map((m,i)=>`
+    <div class="mo-item">
+      <div class="mo-rank ${i===0?'gold':''}">${i+1}</div>
+      <div class="mo-info">
+        <div class="mo-name">${m.name}</div>
+        <div class="mo-bar-bg"><div class="mo-bar" style="width:${max>0?(m.bal/max*100):0}%"></div></div>
+      </div>
+      <div class="mo-amount">${fmtCur(m.bal)}</div>
+    </div>`).join('')||'<div class="text-muted text-center" style="padding:20px;">No members</div>';
+}
+
+function renderWithdrawalHistory(){
+  const isAdmin=DB.currentUser?.role==='admin',user=DB.currentUser;
+  let wds=isAdmin?DB.withdrawals:DB.withdrawals.filter(w=>w.memberId===user.id);
+  wds=[...wds].reverse();
+  const tbody=document.getElementById('withdrawalTableBody');
+  if(!wds.length){tbody.innerHTML='<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No withdrawals yet</td></tr>';return;}
+  tbody.innerHTML=wds.map(w=>{
+    const mem=DB.members.find(m=>m.id===w.memberId)||{name:'Unknown'};
+    return`<tr>
+      <td>${fmtDate(w.date)}</td><td>${mem.name}</td>
+      <td class="font-bold text-red">${fmtCur(w.amount)}</td>
+      <td>${fmtCur(w.balanceAfter)}</td>
+      <td>${w.status==='approved'?'<span class="chip bg-green text-primary">Approved</span>':w.status==='rejected'?'<span class="chip bg-red text-red">Rejected</span>':'<span class="chip bg-orange" style="color:var(--accent);">Pending</span>'}</td>
+      ${isAdmin?`<td>${w.status==='pending'?`<div class="flex gap-2"><button class="btn-success btn-sm" onclick="approveWithdrawal('${w.id}')">✓</button><button class="btn-danger btn-sm" onclick="rejectWithdrawal('${w.id}')">✕</button></div>`:'—'}</td>`:''}</tr>`;
+  }).join('');
+}
+
+// ===== SAVINGS HELPERS =====
+function getMemberIndBal(memberId){
+  const txns=DB.transactions[memberId]||[];
+  return txns.reduce((bal,t)=>{
+    if(t.type==='deposit'&&t.savingsType==='individual')return bal+t.amount;
+    if(t.type==='withdrawal')return bal-t.amount;
+    return bal;
+  },0);
+}
+
+function getColTotal(w){return Object.values(DB.collectiveSavings[w]||{}).reduce((s,v)=>s+(parseFloat(v)||0),0);}
+
+function openUpdateSavings(memberId,memberName,week,type,cur){
+  document.getElementById('updateSavingsMemberId').value=memberId;
+  document.getElementById('updateSavingsMember').value=memberName;
+  document.getElementById('updateSavingsWeek').value=week;
+  document.getElementById('updateSavingsType').value=type;
+  document.getElementById('updateSavingsAmount').value=cur||'';
+  document.getElementById('updateSavingsTitle').textContent=`Update ${type==='collective'?'Collective':'Individual'} Savings`;
+  openModal('updateSavingsModal');
+}
+
+function saveUpdatedSavings(){
+  const memberId=document.getElementById('updateSavingsMemberId').value;
+  const week=parseInt(document.getElementById('updateSavingsWeek').value);
+  const type=document.getElementById('updateSavingsType').value;
+  const amount=parseFloat(document.getElementById('updateSavingsAmount').value)||0;
+  if(type==='collective'){
+    if(!DB.collectiveSavings[week])DB.collectiveSavings[week]={};
+    DB.collectiveSavings[week][memberId]=amount;
+  }else{
+    if(!DB.individualSavings[memberId])DB.individualSavings[memberId]={};
+    DB.individualSavings[memberId][week]=amount;
+  }
+  saveDB();closeModal('updateSavingsModal');renderSavingsPage();showToast('Savings updated!','success');
+}
+
+function openDepositModal(){
+  const sel=document.getElementById('depositWeek');sel.innerHTML='';
+  for(let w=1;w<=52;w++){const o=document.createElement('option');o.value=w;o.textContent=`Week ${w}`;if(w===DB.currentWeek)o.selected=true;sel.appendChild(o);}
+  openModal('depositModal');
+}
+
+function submitDeposit(){
+  const type=document.getElementById('depositType').value;
+  const amount=parseFloat(document.getElementById('depositAmount').value);
+  const week=parseInt(document.getElementById('depositWeek').value);
+  const note=document.getElementById('depositNote').value.trim();
+  if(!amount||amount<=0){showToast('Enter valid amount','error');return;}
+  const d={id:genId(),memberId:DB.currentUser.id,memberName:DB.currentUser.name||DB.currentUser.username,savingsType:type,amount,week,note,date:new Date().toISOString(),status:'pending'};
+  DB.deposits.push(d);saveDB();
+  closeModal('depositModal');
+  showToast('Deposit request submitted!','success');
+  addNotif('admin',`💰 ${d.memberName} requested ${type} deposit of ${fmtCur(amount)}`);
+  sendEmailNotification('admin','New Deposit Request',`${d.memberName} has requested a ${type} deposit of ${fmtCur(amount)} for Week ${week}.`);
+}
+
+function openWithdrawModal(){
+  const bal=getMemberIndBal(DB.currentUser.id);
+  document.getElementById('withdrawAvailable').textContent=fmtCur(bal);
+  openModal('withdrawModal');
+}
+
+function submitWithdrawal(){
+  const amount=parseFloat(document.getElementById('withdrawAmount').value);
+  const reason=document.getElementById('withdrawReason').value.trim();
+  const user=DB.currentUser,bal=getMemberIndBal(user.id);
+  if(!amount||amount<=0){showToast('Enter valid amount','error');return;}
+  if(amount>bal){showToast('Insufficient balance','error');return;}
+  const w={id:genId(),memberId:user.id,amount,reason,date:new Date().toISOString(),status:'pending',balanceAfter:bal-amount};
+  DB.withdrawals.push(w);saveDB();
+  closeModal('withdrawModal');showToast('Withdrawal request submitted!','success');
+  addNotif('admin',`📤 ${user.name||user.username} requested withdrawal of ${fmtCur(amount)}`);
+  sendEmailNotification('admin','Withdrawal Request',`${user.name||user.username} has requested a withdrawal of ${fmtCur(amount)}.`);
+}
+
+function approveWithdrawal(id){
+  const w=DB.withdrawals.find(x=>x.id===id);if(!w)return;
+  w.status='approved';w.approvedDate=new Date().toISOString();
+  if(!DB.transactions[w.memberId])DB.transactions[w.memberId]=[];
+  const bal=getMemberIndBal(w.memberId);
+  DB.transactions[w.memberId].push({id:genId(),type:'withdrawal',savingsType:'individual',amount:w.amount,description:'Withdrawal - '+(w.reason||'Approved'),date:w.approvedDate,balanceAfter:bal-w.amount});
+  saveDB();renderAdminPanel();showToast('Withdrawal approved','success');
+  addNotif(w.memberId,`✅ Your withdrawal of ${fmtCur(w.amount)} has been approved.`);
+  const mem=DB.users.find(u=>u.id===w.memberId);
+  if(mem?.email)sendEmailNotification(mem.email,'Withdrawal Approved',`Your withdrawal of ${fmtCur(w.amount)} has been approved and processed.`);
+}
+
+function rejectWithdrawal(id){
+  const w=DB.withdrawals.find(x=>x.id===id);if(!w)return;
+  w.status='rejected';saveDB();renderAdminPanel();showToast('Withdrawal rejected','info');
+  addNotif(w.memberId,`❌ Withdrawal of ${fmtCur(w.amount)} was rejected.`);
+}
+
+function openReleaseModal(){
+  const total=getColTotal(selectedWeek);
+  document.getElementById('releaseTotalAmount').textContent=fmtCur(total);
+  document.getElementById('releaseWeekInfo').textContent=`Week ${selectedWeek}`;
+  document.getElementById('releaseAmount').value=total;
+  const sel=document.getElementById('releaseRecipient');
+  sel.innerHTML=DB.members.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  const sch=DB.mgoSchedule.find(s=>s.weekNum===selectedWeek);
+  if(sch)sel.value=sch.memberId;
+  openModal('releaseFundsModal');
+}
+
+function toggleReleaseAmount(){
+  document.getElementById('releaseAmountGroup').classList.toggle('hidden',document.getElementById('releaseMethod').value==='send');
+}
+
+function releaseFunds(){
+  const recipId=document.getElementById('releaseRecipient').value;
+  const method=document.getElementById('releaseMethod').value;
+  const total=getColTotal(selectedWeek);
+  const sch=DB.mgoSchedule.find(s=>s.weekNum===selectedWeek);
+  if(sch)sch.released=true;
+  if(method==='transfer'){
+    const amt=parseFloat(document.getElementById('releaseAmount').value)||total;
+    if(!DB.transactions[recipId])DB.transactions[recipId]=[];
+    const bal=getMemberIndBal(recipId);
+    DB.transactions[recipId].push({id:genId(),type:'deposit',savingsType:'individual',amount:amt,description:`MGO Transfer Week ${selectedWeek}`,date:new Date().toISOString(),balanceAfter:bal+amt});
+    if(!DB.individualSavings[recipId])DB.individualSavings[recipId]={};
+  }
+  saveDB();closeModal('releaseFundsModal');
+  renderDashboardMGO();renderCollectiveTable();
+  const mem=DB.members.find(m=>m.id===recipId);
+  showToast(`Funds released to ${mem?.name}!`,'success');
+  addNotif(recipId,`💸 MGO funds of ${fmtCur(total)} for Week ${selectedWeek} released to you!`);
+  const memUser=DB.users.find(u=>u.id===recipId);
+  if(memUser?.email)sendEmailNotification(memUser.email,'MGO Funds Released!',`Congratulations! The MGO funds of ${fmtCur(total)} for Week ${selectedWeek} have been released to you.`);
+}
+
+// ===== EVENTS =====
+function renderEventsPage(){
+  const now=new Date();
+  const up=DB.events.filter(e=>new Date(e.date)>=now&&!e.passed);
+  const past=DB.events.filter(e=>new Date(e.date)<now||e.passed);
+  document.getElementById('upcomingEventsList').innerHTML=up.length?up.map(e=>renderEventCard(e,false)).join(''):'<div class="text-muted text-center" style="padding:20px;">No upcoming events</div>';
+  document.getElementById('pastEventsList').innerHTML=past.length?past.map(e=>renderEventCard(e,false,true)).join(''):'<div class="text-muted text-center" style="padding:20px;">No past events</div>';
+  renderSuggestions();renderPolls();
+}
+
+function renderEventCard(e,compact,isPast){
+  const d=new Date(e.date),isAdmin=DB.currentUser?.role==='admin';
+  return`<div class="event-card">
+    <div class="event-date-badge"><div class="day">${d.getDate()}</div><div class="month">${d.toLocaleString('default',{month:'short'})}</div></div>
+    <div class="event-info">
+      <div class="event-title">${e.title}</div>
+      <div class="event-meta"><span>📍 ${e.location||'TBD'}</span><span>⏰ ${e.time||'TBD'}</span><span>📂 ${e.category||'General'}</span></div>
+      ${!compact?`<div class="event-description">${e.description||''}</div>`:''}
+      ${isPast?`<span class="event-badge ${e.attended===true?'badge-attended':e.attended===false?'badge-missed':'badge-upcoming'}">${e.attended===true?'✅ Attended':e.attended===false?'❌ Not Attended':'⏳ Unknown'}</span>`:'<span class="event-badge badge-upcoming">🚀 Upcoming</span>'}
+      ${isAdmin&&!compact?`<div class="flex gap-2 mt-3" style="flex-wrap:wrap;">
+        ${isPast?`<button class="btn-success btn-sm" onclick="setAttendance('${e.id}',true)">✅ Attended</button><button class="btn-danger btn-sm" onclick="setAttendance('${e.id}',false)">❌ Not Attended</button>`:''}
+        <button class="btn-danger btn-sm" onclick="deleteEvent('${e.id}')">🗑️ Delete</button>
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+function setAttendance(id,val){
+  const e=DB.events.find(x=>x.id===id);if(e){e.attended=val;e.passed=true;saveDB();renderEventsPage();showToast('Updated','success');}
+}
+
+function deleteEvent(id){DB.events=DB.events.filter(e=>e.id!==id);saveDB();renderEventsPage();showToast('Event deleted','info');}
+
+function openAddEventModal(){openModal('addEventModal');}
+
+function addEvent(){
+  const title=document.getElementById('eventTitle').value.trim();
+  const date=document.getElementById('eventDate').value;
+  if(!title||!date){showToast('Title and date required','error');return;}
+  const ev={id:genId(),title,date,time:document.getElementById('eventTime').value,location:document.getElementById('eventLocation').value.trim(),description:document.getElementById('eventDescription').value.trim(),category:document.getElementById('eventCategory').value,createdAt:new Date().toISOString()};
+  DB.events.push(ev);saveDB();
+  closeModal('addEventModal');renderEventsPage();showToast('Event added!','success');
+  addNotif('all',`📅 New event: "${title}" on ${fmtDate(date)}`);
+  sendEmailNotificationToAll('New Event Added',`A new event "${title}" has been added for ${fmtDate(date)} at ${ev.location||'TBD'}.`);
+  ['eventTitle','eventDate','eventTime','eventLocation','eventDescription'].forEach(id=>document.getElementById(id).value='');
+}
+
+function submitSuggestion(){
+  const text=document.getElementById('suggestionText').value.trim();
+  const anon=document.getElementById('suggestionAnon').checked;
+  if(!text){showToast('Enter your suggestion','error');return;}
+  const user=DB.currentUser;
+  DB.suggestions.push({id:genId(),text,anonymous:anon,memberName:anon?'Anonymous':(user.name||user.username),memberId:user.id,date:new Date().toISOString()});
+  saveDB();document.getElementById('suggestionText').value='';document.getElementById('suggestionAnon').checked=false;
+  renderSuggestions();showToast('Suggestion submitted!','success');
+}
+
+function renderSuggestions(){
+  const el=document.getElementById('suggestionsList');
+  const isAdmin=DB.currentUser?.role==='admin';
+  el.innerHTML=DB.suggestions.length?[...DB.suggestions].reverse().map(s=>`
+    <div class="suggestion-card">
+      <div class="suggestion-text">${s.text}</div>
+      <div class="suggestion-meta">💬 ${s.memberName} · ${fmtDate(s.date)}
+        ${isAdmin?`<button onclick="DB.suggestions=DB.suggestions.filter(x=>x.id!=='${s.id}');saveDB();renderSuggestions();" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;margin-left:8px;">Delete</button>`:''}
+      </div>
+    </div>`).join(''):'<div class="text-muted text-center" style="padding:16px;">No suggestions yet</div>';
+}
+
+// ===== POLLS - REDESIGNED =====
+let pollOptCount=2;
+
+function handlePollTypeChange(){
+  const type=document.getElementById('pollType').value;
+  document.getElementById('pollOptionsSection').classList.toggle('hidden',type==='mgo');
+  document.getElementById('mgoWeekSection').classList.toggle('hidden',type!=='mgo');
+}
+
+function addPollOptionRow(){
+  const list=document.getElementById('pollOptionsList');
+  const div=document.createElement('div');
+  div.className='flex gap-2 mb-2';div.id=`pollOptRow${pollOptCount}`;
+  div.innerHTML=`<input type="text" class="form-input" placeholder="Option ${pollOptCount+1}" id="pollOpt${pollOptCount}"><button class="btn-icon" style="background:var(--red-light);color:white;" onclick="document.getElementById('pollOptRow${pollOptCount}').remove()">✕</button>`;
+  list.appendChild(div);pollOptCount++;
+}
+
+function removePollOptionRow(i){document.getElementById(`pollOptRow${i}`)?.remove();}
+
+function openAddPollModal(){
+  pollOptCount=2;
+  document.getElementById('pollType').value='activity';
+  document.getElementById('pollQuestion').value='';
+  document.getElementById('pollOptionsList').innerHTML=`
+    <div class="flex gap-2 mb-2" id="pollOptRow0"><input type="text" class="form-input" placeholder="Option 1" id="pollOpt0"><button class="btn-icon" style="background:var(--red-light);color:white;" onclick="removePollOptionRow(0)">✕</button></div>
+    <div class="flex gap-2 mb-2" id="pollOptRow1"><input type="text" class="form-input" placeholder="Option 2" id="pollOpt1"><button class="btn-icon" style="background:var(--red-light);color:white;" onclick="removePollOptionRow(1)">✕</button></div>`;
+  document.getElementById('pollOptionsSection').classList.remove('hidden');
+  document.getElementById('mgoWeekSection').classList.add('hidden');
+  document.getElementById('pollMultiple').checked=false;
+  openModal('addPollModal');
+}
+
+function createPoll(){
+  const type=document.getElementById('pollType').value;
+  const question=document.getElementById('pollQuestion').value.trim();
+  const multiple=document.getElementById('pollMultiple').checked;
+  if(!question){showToast('Enter a question','error');return;}
+  let options=[];
+  if(type==='mgo'){
+    const from=parseInt(document.getElementById('mgoFromWeek').value)||1;
+    const to=parseInt(document.getElementById('mgoToWeek').value)||DB.currentWeek+4;
+    if(from>to){showToast('From week must be less than To week','error');return;}
+    for(let w=from;w<=to;w++){options.push({id:genId(),text:`Week ${w}`,weekNum:w,votes:[]});}
+  } else {
+    for(let i=0;i<pollOptCount;i++){
+      const inp=document.getElementById(`pollOpt${i}`);
+      if(inp&&inp.value.trim())options.push({id:genId(),text:inp.value.trim(),votes:[]});
+    }
+    if(options.length<2){showToast('Add at least 2 options','error');return;}
+  }
+  DB.polls.push({id:genId(),type,question,options,multiple,createdAt:new Date().toISOString(),closed:false});
+  saveDB();closeModal('addPollModal');renderPolls();showToast('Poll created!','success');
+}
+
+function renderPolls(){
+  const el=document.getElementById('pollsList');
+  const user=DB.currentUser;
+  if(!DB.polls.length){el.innerHTML='<div class="text-muted text-center" style="padding:20px;">No polls yet</div>';return;}
+  el.innerHTML=DB.polls.map(poll=>{
+    const total=poll.options.reduce((s,o)=>s+o.votes.length,0);
+    return`<div class="poll-card">
+      <div class="poll-question">${poll.question}</div>
+      ${poll.type==='mgo'?'<span class="chip bg-orange" style="color:var(--accent);margin-bottom:10px;">🔄 MGO Order Poll</span>':''}
+      ${poll.options.map(opt=>{
+        const vc=opt.votes.length,pct=total>0?Math.round(vc/total*100):0,voted=opt.votes.includes(user.id);
+        return`<div class="poll-option ${voted?'selected':''}" onclick="voteOnPoll('${poll.id}','${opt.id}')">
+          <div class="poll-bar-wrap">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-size:13px;font-weight:${voted?700:500};">${voted?'✓ ':''}${opt.text}</span>
+              <span style="font-size:11px;color:var(--text-muted);">${vc} (${pct}%)</span>
+            </div>
+            <div class="poll-bar"><div class="poll-bar-fill" style="width:${pct}%"></div></div>
+          </div>
+        </div>`;}).join('')}
+      <div style="margin-top:10px;font-size:11px;color:var(--text-muted);">Total: ${total} · ${poll.multiple?'Multiple answers':'Single answer'}${poll.closed?' · 🔒 Closed':''}</div>
+      ${DB.currentUser?.role==='admin'?`<div class="flex gap-2 mt-3" style="flex-wrap:wrap;">
+        ${!poll.closed?`<button class="btn-secondary btn-sm" onclick="closePoll('${poll.id}')">Close</button>`:'<span class="chip bg-red text-red">Closed</span>'}
+        <button class="btn-danger btn-sm" onclick="deletePoll('${poll.id}')">Delete</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function voteOnPoll(pollId,optId){
+  const poll=DB.polls.find(p=>p.id===pollId);
+  if(!poll||poll.closed){showToast('Poll is closed','info');return;}
+  const user=DB.currentUser,opt=poll.options.find(o=>o.id===optId);
+  if(!opt)return;
+  if(!poll.multiple)poll.options.forEach(o=>{o.votes=o.votes.filter(v=>v!==user.id);});
+  if(opt.votes.includes(user.id)){opt.votes=opt.votes.filter(v=>v!==user.id);}
+  else{
+    opt.votes.push(user.id);
+    if(poll.type==='mgo'&&opt.weekNum){
+      const ex=DB.mgoSchedule.find(s=>s.weekNum===opt.weekNum&&s.memberId===user.id);
+      if(!ex){
+        DB.mgoSchedule.push({weekNum:opt.weekNum,memberId:user.id,released:false});
+        showToast(`Assigned to Week ${opt.weekNum} in MGO!`,'success');
+      }
+    }
+  }
+  saveDB();renderPolls();
+}
+
+function closePoll(id){const p=DB.polls.find(x=>x.id===id);if(p){p.closed=true;saveDB();renderPolls();}}
+function deletePoll(id){DB.polls=DB.polls.filter(p=>p.id!==id);saveDB();renderPolls();}
+
+function openMGOVoteModal(){
+  const mgoPoll=DB.polls.find(p=>p.type==='mgo'&&!p.closed);
+  const el=document.getElementById('mgoVotePoll');
+  const user=DB.currentUser;
+  if(!mgoPoll){el.innerHTML='<div class="text-muted text-center" style="padding:20px;">No MGO poll available. Ask admin to create one.</div>';openModal('mgoVoteModal');return;}
+  const total=mgoPoll.options.reduce((s,o)=>s+o.votes.length,0);
+  el.innerHTML=`<div class="poll-question">${mgoPoll.question}</div>`+
+    mgoPoll.options.map(opt=>{
+      const voted=opt.votes.includes(user.id),vc=opt.votes.length,pct=total>0?Math.round(vc/total*100):0;
+      return`<div class="poll-option ${voted?'selected':''}" onclick="voteOnPoll('${mgoPoll.id}','${opt.id}');renderMGOVote('${mgoPoll.id}')">
+        <div class="poll-bar-wrap">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+            <span style="font-size:13px;font-weight:${voted?700:500};">${voted?'✓ ':''}${opt.text}</span>
+            <span style="font-size:11px;color:var(--text-muted);">${vc} votes</span>
+          </div>
+          <div class="poll-bar"><div class="poll-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;}).join('');
+  openModal('mgoVoteModal');
+}
+
+function renderMGOVote(pollId){
+  const poll=DB.polls.find(p=>p.id===pollId);if(!poll)return;
+  const user=DB.currentUser,total=poll.options.reduce((s,o)=>s+o.votes.length,0);
+  document.getElementById('mgoVotePoll').innerHTML=`<div class="poll-question">${poll.question}</div>`+
+    poll.options.map(opt=>{
+      const voted=opt.votes.includes(user.id),vc=opt.votes.length,pct=total>0?Math.round(vc/total*100):0;
+      return`<div class="poll-option ${voted?'selected':''}" onclick="voteOnPoll('${poll.id}','${opt.id}');renderMGOVote('${poll.id}')">
+        <div class="poll-bar-wrap">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+            <span style="font-size:13px;font-weight:${voted?700:500};">${voted?'✓ ':''}${opt.text}</span>
+            <span style="font-size:11px;color:var(--text-muted);">${vc} votes</span>
+          </div>
+          <div class="poll-bar"><div class="poll-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;}).join('');
+}
+
+// ===== MEMORIES =====
+let memoriesFilter='all';
+
+function filterMemories(cat,el){
+  memoriesFilter=cat;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');renderMemories(cat);
+}
+
+function renderMemories(cat){
+  memoriesFilter=cat;
+  let items=cat==='all'?DB.memories:DB.memories.filter(m=>m.category===cat);
+  const grid=document.getElementById('memoriesGrid');
+  const catColors={Events:'bg-blue',Hikes:'bg-green',Achievements:'bg-orange'};
+  const catEmoji={Events:'🎉',Hikes:'🥾',Achievements:'🏆'};
+  if(!items.length){grid.innerHTML='<div class="text-muted text-center" style="padding:40px;grid-column:1/-1;">No memories in this category yet!</div>';return;}
+  grid.innerHTML=[...items].reverse().map(item=>`
+    <div class="memory-item" onclick="openLightbox('${item.id}')">
+      <div class="memory-media">${item.type==='image'?`<img src="${item.src}" alt="${item.caption}">`:`<video src="${item.src}"></video>`}</div>
+      <div class="memory-info">
+        <div class="memory-cat-badge ${catColors[item.category]||'bg-green'}">${catEmoji[item.category]||'📸'} ${item.category}</div>
+        <div class="memory-caption">${item.caption}</div>
+        <div class="memory-meta"><span>${item.uploadedBy}</span><span>${fmtDate(item.date)}</span></div>
+        ${DB.currentUser?.role==='admin'?`<button onclick="event.stopPropagation();deleteMemory('${item.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;margin-top:4px;">🗑️ Delete</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function deleteMemory(id){DB.memories=DB.memories.filter(m=>m.id!==id);saveDB();renderMemories(memoriesFilter);showToast('Memory deleted','info');}
+
+function openUploadMemoryModal(){
+  const sel=document.getElementById('memoryCategory');
+  sel.innerHTML=DB.memoryCategories.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('memoryDate').value=new Date().toISOString().split('T')[0];
+  openModal('uploadMemoryModal');
+}
+
+function previewMemory(e){
+  const file=e.target.files[0];if(!file)return;
+  const url=URL.createObjectURL(file),prev=document.getElementById('memoryPreview');
+  prev.innerHTML=file.type.startsWith('image/')?`<img src="${url}" style="width:100%;max-height:180px;object-fit:cover;border-radius:9px;">`:`<video src="${url}" controls style="width:100%;max-height:180px;border-radius:9px;"></video>`;
+}
+
+function uploadMemory(){
+  const file=document.getElementById('memoryFile').files[0];
+  const caption=document.getElementById('memoryCaption').value.trim();
+  const date=document.getElementById('memoryDate').value;
+  const category=document.getElementById('memoryCategory').value;
+  if(!file){showToast('Select a file','error');return;}
+  if(!caption){showToast('Add a caption','error');return;}
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    DB.memories.push({id:genId(),src:ev.target.result,type:file.type.startsWith('image/')?'image':'video',category,caption,date,uploadedBy:DB.currentUser.name||DB.currentUser.username,uploadedById:DB.currentUser.id,uploadedAt:new Date().toISOString()});
+    saveDB();closeModal('uploadMemoryModal');renderMemories(memoriesFilter);showToast('Memory uploaded!','success');
+    document.getElementById('memoryFile').value='';
+    document.getElementById('memoryCaption').value='';
+    document.getElementById('memoryPreview').innerHTML='';
+  };
+  reader.readAsDataURL(file);
+}
+
+function openLightbox(id){
+  const m=DB.memories.find(x=>x.id===id);if(!m)return;
+  const img=document.getElementById('lightboxImg'),vid=document.getElementById('lightboxVideo');
+  if(m.type==='image'){img.src=m.src;img.style.display='block';vid.style.display='none';}
+  else{vid.src=m.src;vid.style.display='block';img.style.display='none';}
+  document.getElementById('lightboxInfo').innerHTML=`<strong>${m.caption}</strong><br><small style="color:var(--text-muted);">${m.category} · ${m.uploadedBy} · ${fmtDate(m.date)}</small>`;
+  document.getElementById('lightbox').classList.remove('hidden');
+}
+
+function closeLightbox(){
+  document.getElementById('lightbox').classList.add('hidden');
+  document.getElementById('lightboxVideo').pause?.();
+}
+
+// ===== HISTORY =====
+function filterHistory(type,el){
+  document.querySelectorAll('#page-history .filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');renderHistory(type);
+}
+
+function renderHistory(type){
+  const user=DB.currentUser,isAdmin=user.role==='admin';
+  let txns=isAdmin?Object.values(DB.transactions).flat():(DB.transactions[user.id]||[]);
+  if(type!=='all')txns=txns.filter(t=>t.type===type);
+  txns=[...txns].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tbody=document.getElementById('historyTableBody');
+  if(!txns.length){tbody.innerHTML='<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No transactions</td></tr>';return;}
+  tbody.innerHTML=txns.map(t=>`
+    <tr>
+      <td>${fmtDate(t.date)}</td>
+      <td><span class="chip ${t.type==='deposit'?'bg-green text-primary':'bg-red text-red'}">${t.type==='deposit'?'⬇️ Deposit':'⬆️ Withdrawal'}</span></td>
+      <td style="font-size:12px;">${t.description}</td>
+      <td class="font-bold ${t.type==='deposit'?'text-primary':'text-red'}">${t.type==='deposit'?'+':'-'}${fmtCur(t.amount)}</td>
+      <td>${fmtCur(t.balanceAfter||0)}</td>
+    </tr>`).join('');
+}
+
+// ===== PROFILE =====
+function renderProfilePage(){
+  const user=DB.currentUser;updateAvatars();
+  document.getElementById('profileName').textContent=user.name||user.username;
+  document.getElementById('profileRole').textContent=user.role==='admin'?'⚡ Administrator':'👤 Member';
+  document.getElementById('profileUsername').textContent='@'+user.username;
+  document.getElementById('profileNameInput').value=user.name||'';
+  document.getElementById('profilePhone').value=user.phone||'';
+  document.getElementById('profileEmail').value=user.email||'';
+  setTimeout(renderMySavingsChart,100);
+}
+
+function saveProfile(){
+  const user=DB.currentUser;
+  user.name=document.getElementById('profileNameInput').value.trim();
+  user.phone=document.getElementById('profilePhone').value.trim();
+  user.email=document.getElementById('profileEmail').value.trim();
+  const idx=DB.users.findIndex(u=>u.id===user.id);
+  if(idx>=0)DB.users[idx]={...DB.users[idx],...user};
+  saveDB();renderProfilePage();buildSidebar();showToast('Profile updated!','success');
+}
+
+function changePassword(){
+  const cur=document.getElementById('currentPassword').value;
+  const nw=document.getElementById('newPassword').value;
+  const conf=document.getElementById('confirmPassword').value;
+  if(!cur||!nw||!conf){showToast('Fill all fields','error');return;}
+  if(DB.currentUser.password!==cur){showToast('Current password wrong','error');return;}
+  if(nw!==conf){showToast('Passwords do not match','error');return;}
+  if(nw.length<6){showToast('Password must be 6+ characters','error');return;}
+  DB.currentUser.password=nw;
+  const idx=DB.users.findIndex(u=>u.id===DB.currentUser.id);
+  if(idx>=0)DB.users[idx].password=nw;
+  saveDB();
+  ['currentPassword','newPassword','confirmPassword'].forEach(id=>document.getElementById(id).value='');
+  showToast('Password updated!','success');
+}
+
+function handleProfilePicChange(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    DB.currentUser.profilePic=ev.target.result;
+    const idx=DB.users.findIndex(u=>u.id===DB.currentUser.id);
+    if(idx>=0)DB.users[idx].profilePic=ev.target.result;
+    saveDB();updateAvatars();showToast('Profile picture updated!','success');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== ADMIN =====
+function renderAdminPanel(){
+  if(DB.currentUser?.role!=='admin')return;
+  renderMembersTable();renderPendingDeposits();renderPendingWithdrawals();renderMGOAdmin();renderMemoryCatAdmin();
+  // Load saved email config
+  const ec=localStorage.getItem('emailConfig');
+  if(ec){const cfg=JSON.parse(ec);document.getElementById('emailjsService').value=cfg.serviceId||'';document.getElementById('emailjsTemplate').value=cfg.templateId||'';document.getElementById('emailjsKey').value=cfg.publicKey||'';}
+  const sc=localStorage.getItem('supabaseConfig');
+  if(sc){const cfg=JSON.parse(sc);document.getElementById('supabaseUrl').value=cfg.url||'';document.getElementById('supabaseKey').value=cfg.key||'';}
+}
+
+function renderMembersTable(){
+  const tbody=document.getElementById('membersTableBody');
+  tbody.innerHTML=DB.members.map((m,i)=>{
+    const u=DB.users.find(x=>x.id===m.id),bal=getMemberIndBal(m.id);
+    return`<tr>
+      <td>${i+1}</td><td><strong>${m.name}</strong></td><td>${u?.username||'—'}</td>
+      <td>${m.phone||'—'}</td><td>${m.email||'—'}</td>
+      <td class="font-bold text-primary">${fmtCur(bal)}</td>
+      <td><button class="btn-danger btn-sm" onclick="removeMember('${m.id}')">Remove</button></td>
+    </tr>`;}).join('')||'<tr><td colspan="7" class="text-center text-muted">No members yet</td></tr>';
+}
+
+function openAddMemberModal(){openModal('addMemberModal');}
+
+function addMember(){
+  const name=document.getElementById('newMemberName').value.trim();
+  const username=document.getElementById('newMemberUsername').value.trim();
+  const password=document.getElementById('newMemberPassword').value.trim();
+  const phone=document.getElementById('newMemberPhone').value.trim();
+  const email=document.getElementById('newMemberEmail').value.trim();
+  if(!name||!username||!password){showToast('Name, username, password required','error');return;}
+  if(DB.users.find(u=>u.username===username)){showToast('Username already exists','error');return;}
+  const id=genId();
+  DB.users.push({id,name,username,password,role:'member',phone,email,profilePic:null});
+  DB.members.push({id,name,phone,email});
+  DB.transactions[id]=[];DB.individualSavings[id]={};
+  saveDB();closeModal('addMemberModal');renderMembersTable();
+  showToast(`${name} added! Login: ${username} / ${password}`,'success');
+  if(email)sendEmailNotification(email,'Welcome to ChamaConnect!',`Hi ${name}, you've been added to ChamaConnect!\nLogin: ${username}\nPassword: ${password}\nPlease change your password after logging in.`);
+  ['newMemberName','newMemberUsername','newMemberPassword','newMemberPhone','newMemberEmail'].forEach(id=>document.getElementById(id).value='');
+}
+
+function removeMember(id){
+  if(!confirm('Remove this member?'))return;
+  DB.members=DB.members.filter(m=>m.id!==id);DB.users=DB.users.filter(u=>u.id!==id);
+  saveDB();renderMembersTable();showToast('Member removed','info');
+}
+
+function renderPendingDeposits(){
+  const pending=DB.deposits.filter(d=>d.status==='pending');
+  document.getElementById('pendingDepositsCount').textContent=pending.length;
+  const el=document.getElementById('pendingDepositsList');
+  if(!pending.length){el.innerHTML='<div class="text-muted text-center" style="padding:20px;">No pending deposits</div>';return;}
+  el.innerHTML=pending.map(d=>`
+    <div class="pending-card">
+      <div class="pending-info"><div class="pending-title">${d.memberName} — ${d.savingsType==='individual'?'Individual':'Collective'}</div>
+      <div class="pending-meta">Week ${d.week} · ${fmtDate(d.date)} ${d.note?'· '+d.note:''}</div></div>
+      <div class="pending-amount">${fmtCur(d.amount)}</div>
+      <div class="flex gap-2"><button class="btn-success btn-sm" onclick="confirmDeposit('${d.id}')">✓</button><button class="btn-danger btn-sm" onclick="rejectDeposit('${d.id}')">✕</button></div>
+    </div>`).join('');
+}
+
+function confirmDeposit(depositId){
+  const d=DB.deposits.find(x=>x.id===depositId);if(!d)return;
+  d.status='confirmed';d.confirmedAt=new Date().toISOString();
+  if(d.savingsType==='collective'){
+    if(!DB.collectiveSavings[d.week])DB.collectiveSavings[d.week]={};
+    DB.collectiveSavings[d.week][d.memberId]=(DB.collectiveSavings[d.week][d.memberId]||0)+d.amount;
+  } else {
+    if(!DB.individualSavings[d.memberId])DB.individualSavings[d.memberId]={};
+    DB.individualSavings[d.memberId][d.week]=(DB.individualSavings[d.memberId][d.week]||0)+d.amount;
+  }
+  if(!DB.transactions[d.memberId])DB.transactions[d.memberId]=[];
+  const balBefore=getMemberIndBal(d.memberId);
+  DB.transactions[d.memberId].push({id:genId(),type:'deposit',savingsType:d.savingsType,amount:d.amount,description:`${d.savingsType==='individual'?'Individual':'Collective'} Deposit - Week ${d.week}`,date:d.confirmedAt,balanceAfter:d.savingsType==='individual'?balBefore+d.amount:balBefore,weekNum:d.week});
+  saveDB();renderAdminPanel();showToast('Deposit confirmed!','success');
+  addNotif(d.memberId,`✅ Deposit of ${fmtCur(d.amount)} confirmed!`);
+  const mem=DB.users.find(u=>u.id===d.memberId);
+  if(mem?.email)sendEmailNotification(mem.email,'Deposit Confirmed',`Your ${d.savingsType} deposit of ${fmtCur(d.amount)} for Week ${d.week} has been confirmed.`);
+}
+
+function rejectDeposit(id){
+  const d=DB.deposits.find(x=>x.id===id);if(d){d.status='rejected';saveDB();renderAdminPanel();showToast('Deposit rejected','info');}
+}
+
+function renderPendingWithdrawals(){
+  const pending=DB.withdrawals.filter(w=>w.status==='pending');
+  document.getElementById('pendingWithdrawalsCount').textContent=pending.length;
+  const el=document.getElementById('pendingWithdrawalsList');
+  if(!pending.length){el.innerHTML='<div class="text-muted text-center" style="padding:20px;">No pending withdrawals</div>';return;}
+  el.innerHTML=pending.map(w=>{
+    const mem=DB.members.find(m=>m.id===w.memberId)||{name:'Unknown'};
+    return`<div class="pending-card">
+      <div class="pending-info"><div class="pending-title">${mem.name}</div><div class="pending-meta">${fmtDate(w.date)} ${w.reason?'· '+w.reason:''}</div></div>
+      <div class="pending-amount text-red">${fmtCur(w.amount)}</div>
+      <div class="flex gap-2">
+        <button class="btn-success btn-sm" onclick="approveWithdrawal('${w.id}');renderAdminPanel()">✓</button>
+        <button class="btn-danger btn-sm" onclick="rejectWithdrawal('${w.id}');renderAdminPanel()">✕</button>
+      </div>
+    </div>`;}).join('');
+}
+
+// ===== MGO SCHEDULE - REDESIGNED =====
+function openMGOScheduleModal(){
+  renderMGOScheduleTable();
+  const sel=document.getElementById('mgoMemberSelect');
+  sel.innerHTML=DB.members.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  openModal('mgoScheduleModal');
+}
+
+function renderMGOScheduleTable(){
+  const tbody=document.getElementById('mgoScheduleTableBody');
+  const sorted=[...DB.mgoSchedule].sort((a,b)=>a.weekNum-b.weekNum);
+  tbody.innerHTML=sorted.map(s=>{
+    const mem=DB.members.find(m=>m.id===s.memberId),wd=getWeekDates(s.weekNum);
+    return`<tr>
+      <td><strong>${mem?.name||'Unknown'}</strong></td>
+      <td><span class="chip bg-green text-primary">Week ${s.weekNum}</span></td>
+      <td style="font-size:11px;color:var(--text-muted);">${wd.label}</td>
+      <td>
+        ${s.released?'<span class="chip bg-green text-primary">Released</span>':`<button class="btn-danger btn-sm" onclick="removeMGOEntry(${s.weekNum})">Remove</button>`}
+      </td>
+    </tr>`;}).join('')||'<tr><td colspan="4" class="text-center text-muted">No assignments yet</td></tr>';
+}
+
+function addMGOEntry(){
+  const memberId=document.getElementById('mgoMemberSelect').value;
+  const weekNum=parseInt(document.getElementById('mgoWeekInput').value);
+  if(!memberId||!weekNum||weekNum<1||weekNum>52){showToast('Select member and valid week (1-52)','error');return;}
+  const existing=DB.mgoSchedule.findIndex(s=>s.weekNum===weekNum);
+  if(existing>=0){DB.mgoSchedule[existing].memberId=memberId;}
+  else{DB.mgoSchedule.push({weekNum,memberId,released:false});}
+  saveDB();renderMGOScheduleTable();renderMGOAdmin();
+  document.getElementById('mgoWeekInput').value='';
+  showToast('MGO assignment saved!','success');
+}
+
+function removeMGOEntry(weekNum){
+  DB.mgoSchedule=DB.mgoSchedule.filter(s=>s.weekNum!==weekNum);
+  saveDB();renderMGOScheduleTable();renderMGOAdmin();showToast('Assignment removed','info');
+}
+
+function renderMGOAdmin(){
+  const el=document.getElementById('mgoScheduleList');
+  if(!DB.mgoSchedule.length){el.innerHTML='<div class="text-muted text-center" style="padding:20px;">No MGO schedule set</div>';return;}
+  const sorted=[...DB.mgoSchedule].sort((a,b)=>a.weekNum-b.weekNum);
+  el.innerHTML=sorted.map(s=>{
+    const mem=DB.members.find(m=>m.id===s.memberId),wd=getWeekDates(s.weekNum);
+    return`<div class="pending-card">
+      <div class="pending-info"><div class="pending-title">Week ${s.weekNum} — ${mem?.name||'Unknown'}</div><div class="pending-meta">${wd.label}</div></div>
+      ${s.released?'<span class="chip bg-green text-primary">Released ✅</span>':'<span class="chip bg-orange" style="color:var(--accent);">Pending</span>'}
+    </div>`;}).join('');
+}
+
+function renderMemoryCatAdmin(){
+  document.getElementById('memoryCategoriesList').innerHTML=DB.memoryCategories.map(c=>`
+    <div class="flex items-center justify-between mb-2" style="background:var(--bg);padding:7px 10px;border-radius:7px;">
+      <span style="font-size:13px;">${c}</span>
+      <button class="btn-icon" style="background:var(--red-light);color:white;width:26px;height:26px;font-size:11px;" onclick="removeMemoryCat('${c}')">✕</button>
+    </div>`).join('');
+}
+
+function addMemoryCategory(){
+  const val=document.getElementById('newCategoryInput').value.trim();
+  if(!val||DB.memoryCategories.includes(val))return;
+  DB.memoryCategories.push(val);saveDB();renderMemoryCatAdmin();updateMemoryFilters();showToast(`Category "${val}" added`,'success');
+  document.getElementById('newCategoryInput').value='';
+}
+
+function removeMemoryCat(cat){
+  DB.memoryCategories=DB.memoryCategories.filter(c=>c!==cat);saveDB();renderMemoryCatAdmin();updateMemoryFilters();
+}
+
+function updateMemoryFilters(){
+  const emoji={Events:'🎉',Hikes:'🥾',Achievements:'🏆'};
+  document.getElementById('memoriesFilter').innerHTML=
+    `<button class="filter-chip ${memoriesFilter==='all'?'active':''}" onclick="filterMemories('all',this)">🌟 All</button>`+
+    DB.memoryCategories.map(c=>`<button class="filter-chip ${memoriesFilter===c?'active':''}" onclick="filterMemories('${c}',this)">${emoji[c]||'📁'} ${c}</button>`).join('');
+}
+
+// ===== EMAIL / NOTIFICATIONS =====
+function saveEmailConfig(){
+  const cfg={serviceId:document.getElementById('emailjsService').value.trim(),templateId:document.getElementById('emailjsTemplate').value.trim(),publicKey:document.getElementById('emailjsKey').value.trim()};
+  Object.assign(EMAILJS_CONFIG,cfg);localStorage.setItem('emailConfig',JSON.stringify(cfg));
+  if(cfg.publicKey){emailjs.init(cfg.publicKey);showToast('Email config saved!','success');}
+  else showToast('Email config saved (no key provided)','warning');
+}
+
+function sendEmailNotification(to,subject,message){
+  if(!EMAILJS_CONFIG.serviceId||!EMAILJS_CONFIG.templateId||!EMAILJS_CONFIG.publicKey){return;}
+  if(!to||!to.includes('@')){return;}
+  emailjs.send(EMAILJS_CONFIG.serviceId,EMAILJS_CONFIG.templateId,{to_email:to,to_name:to,subject:subject,message:message}).catch(()=>{});
+}
+
+function sendEmailNotificationToAll(subject,message){
+  DB.members.forEach(m=>{const u=DB.users.find(x=>x.id===m.id);if(u?.email)sendEmailNotification(u.email,subject,message);});
+}
+
+function addNotif(targetId,message){
+  DB.notifications.push({id:genId(),targetId,message,date:new Date().toISOString(),read:false});
+  saveDB();updateNotifBadge();
+}
+
+function updateNotifBadge(){
+  const user=DB.currentUser;if(!user)return;
+  const unread=DB.notifications.filter(n=>(n.targetId===user.id||n.targetId==='all'||(n.targetId==='admin'&&user.role==='admin'))&&!n.read).length;
+  const badge=document.getElementById('notifBadge');
+  badge.textContent=unread;badge.classList.toggle('hidden',unread===0);
+}
+
+function toggleNotifications(){
+  const panel=document.getElementById('notifPanel');
+  panel.classList.toggle('hidden');
+  if(!panel.classList.contains('hidden'))renderNotifPanel();
+}
+
+function renderNotifPanel(){
+  const user=DB.currentUser;
+  const notifs=DB.notifications.filter(n=>n.targetId===user.id||n.targetId==='all'||(n.targetId==='admin'&&user.role==='admin')).reverse().slice(0,10);
+  const el=document.getElementById('notifList');
+  el.innerHTML=notifs.length?notifs.map(n=>`
+    <div class="notif-item ${!n.read?'unread':''}" onclick="markNotifRead('${n.id}')">
+      <div class="notif-item-title">${n.message}</div>
+      <div class="notif-item-time">${fmtDate(n.date)}</div>
+    </div>`).join(''):'<div class="text-muted text-center" style="padding:20px;">No notifications</div>';
+}
+
+function markNotifRead(id){const n=DB.notifications.find(x=>x.id===id);if(n){n.read=true;saveDB();updateNotifBadge();renderNotifPanel();}}
+function clearAllNotifications(){DB.notifications.forEach(n=>n.read=true);saveDB();updateNotifBadge();renderNotifPanel();}
+
+document.addEventListener('click',function(e){
+  const panel=document.getElementById('notifPanel'),btn=document.getElementById('notifBtn');
+  if(panel&&!panel.classList.contains('hidden')&&!panel.contains(e.target)&&!btn.contains(e.target))panel.classList.add('hidden');
+});
+
+// ===== SUPABASE =====
+function openSupabaseConfig(){document.getElementById('supabaseConfigSection').classList.remove('hidden');navigateTo('admin');}
+
+async function initSupabase(){
+  const url=document.getElementById('supabaseUrl').value.trim(),key=document.getElementById('supabaseKey').value.trim();
+  if(!url||!key){showToast('Enter URL and key','error');return;}
+  try{
+    const{createClient}=window.supabase;
+    supabaseClient=createClient(url,key);
+    await supabaseClient.from('members').select('*').limit(1);
+    supabaseConfigured=true;localStorage.setItem('supabaseConfig',JSON.stringify({url,key}));
+    document.getElementById('supabaseBanner').innerHTML='☁️ <strong>Cloud Sync: Connected!</strong> ✅';
+    document.getElementById('supabaseBanner').style.background='linear-gradient(135deg,#1B5E20,#4CAF50)';
+    showToast('Supabase connected!','success');
+  }catch(err){showToast('Supabase connection failed: '+err.message,'error');}
+}
+
+// ===== PDF EXPORT =====
+function exportPDFReport(){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  const user=DB.currentUser;
+  doc.setFontSize(20);doc.setTextColor(46,125,50);doc.text('ChamaConnect Report',105,15,{align:'center'});
+  doc.setFontSize(10);doc.setTextColor(100);doc.text(`Generated: ${new Date().toLocaleString()}`,105,22,{align:'center'});
+  doc.text(`Member: ${user.name||user.username}`,14,30);
+  const bal=getMemberIndBal(user.id);
+  doc.setFontSize(12);doc.setTextColor(0);doc.text('Account Summary',14,40);
+  doc.autoTable({startY:44,head:[['Metric','Value']],body:[['Individual Balance',fmtCur(bal)],['Current Week',`Week ${DB.currentWeek}`],['Total Members',DB.members.length],['Total Events',DB.events.length]],styles:{fontSize:10},headStyles:{fillColor:[46,125,50]}});
+  const txns=user.role==='admin'?Object.values(DB.transactions).flat():(DB.transactions[user.id]||[]);
+  if(txns.length){
+    doc.text('Recent Transactions',14,doc.lastAutoTable.finalY+10);
+    doc.autoTable({startY:doc.lastAutoTable.finalY+14,head:[['Date','Type','Description','Amount']],body:txns.slice(0,15).map(t=>[fmtDate(t.date),t.type,t.description,fmtCur(t.amount)]),styles:{fontSize:9},headStyles:{fillColor:[21,101,192]}});
+  }
+  doc.save('ChamaConnect_Report.pdf');showToast('PDF exported!','success');
+}
+
+function exportCollectivePDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  doc.setFontSize(16);doc.setTextColor(46,125,50);doc.text(`Collective Savings - Week ${selectedWeek}`,148,15,{align:'center'});
+  const wd=getWeekDates(selectedWeek);doc.setFontSize(10);doc.setTextColor(100);doc.text(wd.label,148,22,{align:'center'});
+  const wData=DB.collectiveSavings[selectedWeek]||{};
+  const rows=DB.members.map((m,i)=>[i+1,m.name,fmtCur(parseFloat(wData[m.id]||0)),parseFloat(wData[m.id]||0)>0?'Paid':'Pending']);
+  const total=getColTotal(selectedWeek);
+  rows.push(['','TOTAL',fmtCur(total),'']);
+  doc.autoTable({startY:28,head:[['#','Member','Amount','Status']],body:rows,styles:{fontSize:10},headStyles:{fillColor:[46,125,50]}});
+  doc.save(`Collective_Week${selectedWeek}.pdf`);showToast('PDF exported!','success');
+}
+
+function exportIndividualPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF('l','mm',[297,420]);
+  doc.setFontSize(16);doc.setTextColor(46,125,50);doc.text('Individual Savings Summary',210,15,{align:'center'});
+  const rows=DB.members.map((m,i)=>{
+    const sav=DB.individualSavings[m.id]||{},total=Object.values(sav).reduce((s,v)=>s+(parseFloat(v)||0),0);
+    return[i+1,m.name,fmtCur(getMemberIndBal(m.id))];});
+  doc.autoTable({startY:22,head:[['#','Member','Individual Balance']],body:rows,styles:{fontSize:10},headStyles:{fillColor:[46,125,50]}});
+  doc.save('Individual_Savings.pdf');showToast('PDF exported!','success');
+}
+
+function exportWithdrawalPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  doc.setFontSize(16);doc.setTextColor(198,40,40);doc.text('Withdrawal History',105,15,{align:'center'});
+  const rows=DB.withdrawals.map(w=>{const mem=DB.members.find(m=>m.id===w.memberId)||{name:'Unknown'};return[fmtDate(w.date),mem.name,fmtCur(w.amount),fmtCur(w.balanceAfter),w.status];});
+  doc.autoTable({startY:22,head:[['Date','Member','Amount','Balance After','Status']],body:rows,styles:{fontSize:9},headStyles:{fillColor:[198,40,40]}});
+  doc.save('Withdrawals.pdf');showToast('PDF exported!','success');
+}
+
+function exportEventsPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  doc.setFontSize(16);doc.setTextColor(21,101,192);doc.text('Planned Activities',105,15,{align:'center'});
+  const rows=DB.events.map(e=>[e.title,fmtDate(e.date),e.location||'TBD',e.category,e.attended===true?'Attended':e.attended===false?'Not Attended':'Upcoming']);
+  doc.autoTable({startY:22,head:[['Title','Date','Location','Category','Status']],body:rows,styles:{fontSize:9},headStyles:{fillColor:[21,101,192]}});
+  doc.save('Activities.pdf');showToast('PDF exported!','success');
+}
+
+function exportHistoryPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  const user=DB.currentUser,isAdmin=user.role==='admin';
+  doc.setFontSize(16);doc.setTextColor(46,125,50);doc.text('Savings History',105,15,{align:'center'});
+  doc.setFontSize(10);doc.setTextColor(100);doc.text(isAdmin?'All Members':'Member: '+(user.name||user.username),105,22,{align:'center'});
+  let txns=isAdmin?Object.values(DB.transactions).flat():(DB.transactions[user.id]||[]);
+  txns=[...txns].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const rows=txns.map(t=>[fmtDate(t.date),t.type,t.description,(t.type==='deposit'?'+':'-')+fmtCur(t.amount),fmtCur(t.balanceAfter||0)]);
+  doc.autoTable({startY:28,head:[['Date','Type','Description','Amount','Balance After']],body:rows,styles:{fontSize:8},headStyles:{fillColor:[46,125,50]}});
+  doc.save('Savings_History.pdf');showToast('PDF exported!','success');
+}
+
+function exportFullReport(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  doc.setFontSize(22);doc.setTextColor(46,125,50);doc.text('ChamaConnect Full Report',105,18,{align:'center'});
+  doc.setFontSize(10);doc.setTextColor(100);doc.text(`${DB.groupName} · ${new Date().toLocaleString()}`,105,25,{align:'center'});
+  // Summary
+  doc.setFontSize(13);doc.setTextColor(0);doc.text('Group Summary',14,35);
+  const totalInd=DB.members.reduce((s,m)=>s+getMemberIndBal(m.id),0);
+  const totalCol=DB.members.reduce((s,m,_,arr)=>s+getColTotal(DB.currentWeek)/arr.length,0);
+  doc.autoTable({startY:38,head:[['Metric','Value']],body:[['Total Members',DB.members.length],['Total Individual Savings',fmtCur(totalInd)],['Current Week',`Week ${DB.currentWeek}`],['Total Events',DB.events.length],['Total Memories',DB.memories.length]],styles:{fontSize:10},headStyles:{fillColor:[46,125,50]}});
+  // Members
+  doc.text('Member Balances',14,doc.lastAutoTable.finalY+10);
+  doc.autoTable({startY:doc.lastAutoTable.finalY+13,head:[['#','Member','Balance']],body:DB.members.map((m,i)=>[i+1,m.name,fmtCur(getMemberIndBal(m.id))]),styles:{fontSize:10},headStyles:{fillColor:[21,101,192]}});
+  // Events
+  if(DB.events.length){
+    doc.text('Events',14,doc.lastAutoTable.finalY+10);
+    doc.autoTable({startY:doc.lastAutoTable.finalY+13,head:[['Title','Date','Status']],body:DB.events.map(e=>[e.title,fmtDate(e.date),e.attended===true?'Attended':e.attended===false?'Missed':'Upcoming']),styles:{fontSize:9},headStyles:{fillColor:[255,111,0]}});
+  }
+  doc.save('ChamaConnect_Full_Report.pdf');showToast('Full report exported!','success');
+}
+
+// ===== MODAL HELPERS =====
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+
+document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',function(e){if(e.target===o)o.classList.add('hidden');});});
+
+// ===== TOAST =====
+function showToast(msg,type='success'){
+  const container=document.getElementById('toastContainer');
+  const icons={success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
+  const toast=document.createElement('div');
+  toast.className=`toast ${type}`;toast.innerHTML=`<span>${icons[type]}</span> ${msg}`;
+  container.appendChild(toast);
+  setTimeout(()=>{toast.style.opacity='0';toast.style.transform='translateX(110px)';toast.style.transition='all .3s';setTimeout(()=>toast.remove(),300);},3500);
+}
+
+// ===== START =====
+initApp();
+</script>
+</body>
+</html>
